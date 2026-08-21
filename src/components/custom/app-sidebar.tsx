@@ -1,4 +1,9 @@
 import * as React from 'react';
+import { useNavigate } from 'react-router';
+import { useMutation } from '@tanstack/react-query';
+import { useCurrentUser } from '@/hooks/use-current-user';
+import { queryClient } from '@/lib/query-client';
+import { logout } from '@/api/auth';
 import {
   Command,
   LifeBuoy,
@@ -45,11 +50,6 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 
 const data = {
-  user: {
-    name: 'shadcn',
-    email: 'm@example.com',
-    avatar: '/avatars/shadcn.jpg'
-  },
   navMain: [
     {
       title: 'Playground',
@@ -113,7 +113,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <MySecondarySidebarGroups items={data.navSecondary} className='mt-auto' />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser />
       </SidebarFooter>
     </Sidebar>
   );
@@ -216,16 +216,26 @@ function MySecondarySidebarGroups({
   );
 }
 
-function NavUser({
-  user
-}: {
-  user: {
-    name: string;
-    email: string;
-    avatar: string;
-  };
-}) {
+function NavUser() {
   const { isMobile } = useSidebar();
+  const navigate = useNavigate();
+  const { data: currentUser } = useCurrentUser();
+
+  const user = {
+    name: currentUser?.fullName ?? currentUser?.userName ?? "",
+    email: currentUser?.email ?? "",
+    avatar: ""
+  };
+
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    // logout() sunucu hatasinda bile yerel oturumu temizler; bu yuzden
+    // basari/hata ayrimi yapmadan her iki durumda da login e gidilir.
+    onSettled: () => {
+      queryClient.clear();
+      navigate("/login", { replace: true });
+    }
+  });
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -282,9 +292,9 @@ function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>
               <LogOut />
-              Log out
+              {logoutMutation.isPending ? "Cikis yapiliyor..." : "Log out"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
