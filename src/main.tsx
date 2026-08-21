@@ -1,6 +1,7 @@
 import ReactDOM from "react-dom/client";
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from "react-router/dom";
+import '@/styles/index.css';
 
 // #region Layouts
 import BaseLayout from './layouts/base.tsx'

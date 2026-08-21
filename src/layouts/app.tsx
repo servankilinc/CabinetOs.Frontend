@@ -1,10 +1,10 @@
-import { Outlet } from 'react-router';
-import { Separator } from '@/components/ui/separator';
-import { AppSidebar } from '@/components/custom/app-sidebar';
-import AppBreadcrumb from '@/components/custom/app-breadcrumb';
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { Outlet } from 'react-router';
+import { AppSidebar } from '@/components/custom/app-sidebar';
+import { Separator } from '@/components/ui/separator';
+import AppBreadcrumb, { type AppBreadcrumbProps } from '@/components/custom/app-breadcrumb';
 
-export default function AppLayout() {
+export default function AppLayout({ page = 'current page', links = [{ href: '/', label: 'Home' }] }: AppBreadcrumbProps) {
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -14,7 +14,7 @@ export default function AppLayout() {
             <div className='flex items-center gap-2 px-4'>
               <SidebarTrigger className='-ml-1' />
               <Separator orientation='vertical' className='mr-2 data-[orientation=vertical]:h-4' />
-              <AppBreadcrumb page='current page' links={[{ href: '/', label: 'Home' }]} />
+              <AppBreadcrumb data={{ page, links }} />
             </div>
           </header>
           <Outlet />

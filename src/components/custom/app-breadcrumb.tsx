@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 
-type AppBreadcrumbProps = {
+export type AppBreadcrumbProps = {
   links?: {
     href: string;
     label: string;
@@ -9,11 +9,11 @@ type AppBreadcrumbProps = {
   page: string;
 };
 
-export default function AppBreadcrumb({ ...props }: AppBreadcrumbProps) {
+export default function AppBreadcrumb({ data }: { data: AppBreadcrumbProps }) {
   return (
     <Breadcrumb>
       <BreadcrumbList>
-        {props.links?.map((link, index) => (
+        {data.links?.map((link, index) => (
           <Fragment key={`breadcrumb-link-${index}`}>
             <BreadcrumbItem>
               <BreadcrumbLink href={link.href}>{link.label}</BreadcrumbLink>
@@ -22,7 +22,7 @@ export default function AppBreadcrumb({ ...props }: AppBreadcrumbProps) {
           </Fragment>
         ))}
         <BreadcrumbItem>
-          <BreadcrumbPage>{props.page}</BreadcrumbPage>
+          <BreadcrumbPage>{data.page}</BreadcrumbPage>
         </BreadcrumbItem>
       </BreadcrumbList>
     </Breadcrumb>

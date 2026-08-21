@@ -92,19 +92,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size='lg'>
-              {' '}
-              {/* asChild */}
-              <a href='#'>
-                <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'>
-                  <Command className='size-4' />
-                </div>
-                <div className='grid flex-1 text-left text-sm leading-tight'>
-                  <span className='truncate font-medium'>Acme Inc</span>
-                  <span className='truncate text-xs'>Enterprise</span>
-                </div>
-              </a>
-            </SidebarMenuButton>
+            <SidebarMenuButton
+              size='lg'
+              render={
+                <a href='#'>
+                  <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'>
+                    <Command className='size-4' />
+                  </div>
+                  <div className='grid flex-1 text-left text-sm leading-tight'>
+                    <span className='truncate font-medium'>Acme Inc</span>
+                    <span className='truncate text-xs'>Enterprise</span>
+                  </div>
+                </a>
+              }></SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -138,39 +138,46 @@ function MySidebarGroups({
       <SidebarGroupLabel>Platform</SidebarGroupLabel>
       <SidebarMenu>
         {items.map(item => (
-          <Collapsible key={item.title} defaultOpen={item.isActive}>
-            <SidebarMenuItem>
-              <SidebarMenuButton tooltip={item.title}>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
-              {item.items?.length ? (
-                <>
-                  <CollapsibleTrigger>
-                    <SidebarMenuAction className='data-[state=open]:rotate-90'>
-                      <ChevronRight />
-                      <span className='sr-only'>Toggle</span>
-                    </SidebarMenuAction>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <SidebarMenuSub>
-                      {item.items?.map(subItem => (
-                        <SidebarMenuSubItem key={subItem.title}>
-                          <SidebarMenuSubButton>
-                            <a href={subItem.url}>
-                              <span>{subItem.title}</span>
-                            </a>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </CollapsibleContent>
-                </>
-              ) : null}
-            </SidebarMenuItem>
-          </Collapsible>
+          <Collapsible
+            key={item.title}
+            defaultOpen={item.isActive}
+            render={
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  tooltip={item.title}
+                  render={
+                    <a href={item.url}>
+                      {' '}
+                      <item.icon /> <span>{item.title}</span>{' '}
+                    </a>
+                  }></SidebarMenuButton>
+                {item.items?.length ? (
+                  <>
+                    <CollapsibleTrigger
+                      render={
+                        <SidebarMenuAction className='data-[state=open]:rotate-90'>
+                          <ChevronRight />
+                          <span className='sr-only'>Toggle</span>
+                        </SidebarMenuAction>
+                      }></CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.items?.map(subItem => (
+                          <SidebarMenuSubItem key={subItem.title}>
+                            <SidebarMenuSubButton
+                              render={
+                                <a href={subItem.url}>
+                                  <span>{subItem.title}</span>
+                                </a>
+                              }></SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
+                  </>
+                ) : null}
+              </SidebarMenuItem>
+            }></Collapsible>
         ))}
       </SidebarMenu>
     </SidebarGroup>
@@ -193,12 +200,14 @@ function MySecondarySidebarGroups({
         <SidebarMenu>
           {items.map(item => (
             <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton size='sm'>
-                <a href={item.url}>
-                  <item.icon />
-                  <span>{item.title}</span>
-                </a>
-              </SidebarMenuButton>
+              <SidebarMenuButton
+                size='sm'
+                render={
+                  <a href={item.url}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </a>
+                }></SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -221,26 +230,9 @@ function NavUser({
     <SidebarMenu>
       <SidebarMenuItem>
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <SidebarMenuButton size='lg' className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'>
-              <Avatar className='h-8 w-8 rounded-lg'>
-                <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
-              </Avatar>
-              <div className='grid flex-1 text-left text-sm leading-tight'>
-                <span className='truncate font-medium'>{user.name}</span>
-                <span className='truncate text-xs'>{user.email}</span>
-              </div>
-              <ChevronsUpDown className='ml-auto size-4' />
-            </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className='w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg'
-            side={isMobile ? 'bottom' : 'right'}
-            align='end'
-            sideOffset={4}>
-            <DropdownMenuLabel className='p-0 font-normal'>
-              <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
+          <DropdownMenuTrigger
+            render={
+              <SidebarMenuButton size='lg' className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'>
                 <Avatar className='h-8 w-8 rounded-lg'>
                   <AvatarImage src={user.avatar} alt={user.name} />
                   <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
@@ -249,8 +241,24 @@ function NavUser({
                   <span className='truncate font-medium'>{user.name}</span>
                   <span className='truncate text-xs'>{user.email}</span>
                 </div>
-              </div>
-            </DropdownMenuLabel>
+                <ChevronsUpDown className='ml-auto size-4' />
+              </SidebarMenuButton>
+            }></DropdownMenuTrigger>
+          <DropdownMenuContent className='min-w-56 rounded-lg' side={isMobile ? 'bottom' : 'right'} align='end' sideOffset={4}>
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className='p-0 font-normal'>
+                <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
+                  <Avatar className='h-8 w-8 rounded-lg'>
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+                  </Avatar>
+                  <div className='grid flex-1 text-left text-sm leading-tight'>
+                    <span className='truncate font-medium'>{user.name}</span>
+                    <span className='truncate text-xs'>{user.email}</span>
+                  </div>
+                </div>
+              </DropdownMenuLabel>
+            </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem>
