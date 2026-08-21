@@ -4,7 +4,7 @@ import { AppSidebar } from '@/components/custom/app-sidebar';
 import { Separator } from '@/components/ui/separator';
 import AppBreadcrumb, { type AppBreadcrumbProps } from '@/components/custom/app-breadcrumb';
 
-export default function AdminLayout({ page = 'current page', links = [{ href: '/', label: 'Home' }] }: AppBreadcrumbProps) {
+export default function AdminLayout({ page = 'current page', links = [{ href: '/', label: 'Home' }] }: Partial<AppBreadcrumbProps>) {
   return (
     <SidebarProvider>
       <AppSidebar />

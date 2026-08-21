@@ -1,19 +1,19 @@
-import ReactDOM from "react-dom/client";
+import ReactDOM from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
-import { RouterProvider } from "react-router/dom";
+import { RouterProvider } from 'react-router/dom';
 import '@/styles/index.css';
 
 // #region Layouts
-import BaseLayout from './layouts/base.tsx'
+import BaseLayout from './layouts/base.tsx';
 import AdminLayout from './layouts/admin.tsx';
 import AppLayout from './layouts/app.tsx';
 // #endregion
 
 // #region Views
-import AppViews from "./views/app"
-import AdminViews from "./views/admin"
-import AuthViews from "./views/auth"
-import ErrorViews from "./views/Error"
+import AppViews from './views/app';
+import AdminViews from './views/admin';
+import AuthViews from './views/auth';
+import ErrorViews from './views/Error';
 // #endregion
 
 import { Provider } from 'react-redux';
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
         Component: AppLayout,
         children: [
           { index: true, Component: AppViews.Home },
-          { path: "/about", Component: AppViews.About },
+              { path: '/about', Component: AppViews.About }
         ]
       },
       // #endregion
@@ -38,28 +38,19 @@ const router = createBrowserRouter([
       {
         path: '/admin',
         Component: AdminLayout,
-        children: [
-          { index: true, Component: AdminViews.Home }
-          // { path: "/about", Component: AppViews.About },
-        ]
-      },
+            children: [{ index: true, Component: AdminViews.Home }]
+          }
       // #endregion
 
-      // #region (3) Auth-Layer
-      {
-        path: '/login',
-        Component: AuthViews.Login
-      },
-      {
-        path: '/signup',
-        Component: AuthViews.Signup
-      },
+      // #region (3) Auth-Layer (acik)
+      { path: '/login', Component: AuthViews.Login },
+      { path: '/signup', Component: AuthViews.Signup }
       // #endregion
     ]
   },
   {
-    path: "*",
-    Component: ErrorViews.NotFoundPage,
+    path: '*',
+    Component: ErrorViews.NotFoundPage
   }
 ]);
 
