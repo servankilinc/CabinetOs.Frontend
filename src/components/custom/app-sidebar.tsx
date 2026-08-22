@@ -1,8 +1,7 @@
 import * as React from 'react';
 import { useNavigate } from 'react-router';
-import { useMutation } from '@tanstack/react-query';
-import { useCurrentUser } from '@/hooks/use-current-user';
-import { queryClient } from '@/lib/query-client';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useCurrentUser } from '@/lib/auth-session';
 import { logout } from '@/api/auth';
 import {
   Command,
@@ -219,12 +218,15 @@ function MySecondarySidebarGroups({
 function NavUser() {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
-  const { data: currentUser } = useCurrentUser();
+  const queryClient = useQueryClient();
+  const currentUser = useCurrentUser();
 
+  // UserBaseDto yalnizca id/fullName/companyId tasir; e-posta oturum yanitinda
+  // gelmedigi icin ilgili satir bosken hic basilmaz.
   const user = {
-    name: currentUser?.fullName ?? currentUser?.userName ?? "",
-    email: currentUser?.email ?? "",
-    avatar: ""
+    name: currentUser?.fullName ?? '',
+    email: '',
+    avatar: ''
   };
 
   const logoutMutation = useMutation({
@@ -232,6 +234,7 @@ function NavUser() {
     // logout() sunucu hatasinda bile yerel oturumu temizler; bu yuzden
     // basari/hata ayrimi yapmadan her iki durumda da login e gidilir.
     onSettled: () => {
+      // logout() oturumu auth-session'dan zaten sildi; geride kalan sorgu cache'ini temizler
       queryClient.clear();
       navigate("/login", { replace: true });
     }
@@ -249,7 +252,7 @@ function NavUser() {
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
                   <span className='truncate font-medium'>{user.name}</span>
-                  <span className='truncate text-xs'>{user.email}</span>
+                  {user.email && <span className='truncate text-xs'>{user.email}</span>}
                 </div>
                 <ChevronsUpDown className='ml-auto size-4' />
               </SidebarMenuButton>
@@ -264,7 +267,7 @@ function NavUser() {
                   </Avatar>
                   <div className='grid flex-1 text-left text-sm leading-tight'>
                     <span className='truncate font-medium'>{user.name}</span>
-                    <span className='truncate text-xs'>{user.email}</span>
+                    {user.email && <span className='truncate text-xs'>{user.email}</span>}
                   </div>
                 </div>
               </DropdownMenuLabel>

@@ -2,13 +2,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router';
+import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { queryClient } from '@/lib/query-client';
-import { completeSession, me, signUp } from '@/api/auth';
-import { handleFormApiError } from '@/lib/form-error';
+import { signUp } from '@/api/auth';
+import { handleFormApiError } from '@/lib/axios-helper';
 import { signUpRequestSchema, type SignUpRequest } from '@/models/auth';
 
 export default function Signup() {
@@ -20,17 +20,13 @@ export default function Signup() {
   });
 
   const mutation = useMutation({
-    mutationFn: async (values: SignUpRequest) => {
-      const signUpResponse = await signUp(values);
-      // SignUpResponse `user` tasimadigi icin userId Me'den alinir; oturum
-      // kimligi ancak ikisi birlestiginde tamamlanir.
-      const currentUser = await me();
-      completeSession(currentUser.id, signUpResponse.deviceId);
-      return currentUser;
-    },
-    onSuccess: currentUser => {
-      queryClient.setQueryData(['currentUser'], currentUser);
-      navigate('/', { replace: true });
+    // Kayit oturum ACMAZ: SignUpResponse kullanici/izin tasimadigi ve ayri bir
+    // profil ucu olmadigi icin buradan tam bir oturum kurulamaz. Kullanici adi
+    // giris formuna tasinir ki kullanici yeniden yazmasin.
+    mutationFn: signUp,
+    onSuccess: (_response, values) => {
+      toast.success('Kayit tamamlandi. Simdi giris yapabilirsiniz.');
+      navigate('/login', { replace: true, state: { userName: values.userName } });
     },
     onError: error => handleFormApiError(error, form.setError)
   });

@@ -18,10 +18,30 @@ import ErrorViews from './views/Error';
 
 import { Provider } from 'react-redux';
 import { store } from '@/store/index.ts';
-import { QueryClientProvider } from '@tanstack/react-query';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { queryClient } from '@/lib/query-client.ts';
+import { ApiError } from '@/lib/axios-helper.ts';
 import RequireAuth from '@/components/custom/require-auth.tsx';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 30_000,
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        // 4xx tekrar denemekle duzelmez; 401'de interceptor oturumu zaten
+        // temizledi, buradan tekrar denemek yalnizca gurultu uretir.
+        // Transport katmani her hatayi ApiError'a cevirdigi icin AxiosError
+        // tanimaya gerek yok.
+        if (error instanceof ApiError && error.status >= 400 && error.status < 500) return false;
+        return failureCount < 2;
+      }
+    },
+    mutations: {
+      retry: false
+    }
+  }
+});
 
 const router = createBrowserRouter([
   {

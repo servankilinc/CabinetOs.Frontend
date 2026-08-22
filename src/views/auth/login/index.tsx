@@ -6,33 +6,26 @@ import { useLocation, useNavigate, Link } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { queryClient } from '@/lib/query-client';
-import { login, me } from '@/api/auth';
-import { handleFormApiError } from '@/lib/form-error';
+import { login } from '@/api/auth';
+import { handleFormApiError } from '@/lib/axios-helper';
 import { loginRequestSchema, type LoginRequest } from '@/models/auth';
 
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo = (location.state as { from?: string } | null)?.from ?? '/';
+  // from: korumali bir sayfadan geldiyse giristen sonra oraya donulur.
+  // userName: kayittan geldiyse kullanici adini yeniden yazdirmamak icin.
+  const navigationState = location.state as { from?: string; userName?: string } | null;
+  const redirectTo = navigationState?.from ?? '/';
 
   const form = useForm<LoginRequest>({
     resolver: zodResolver(loginRequestSchema),
-    defaultValues: { userName: '', password: '' }
+    defaultValues: { userName: navigationState?.userName ?? '', password: '' }
   });
 
   const mutation = useMutation({
-    mutationFn: async (values: LoginRequest) => {
-      await login(values);
-      // Login yaniti rolleri tasir ama izinleri tasimaz; tam profil Me'den gelir.
-      return me();
-    },
-    onSuccess: currentUser => {
-      // Cache'e onceden yazilir; boylece RequireAuth yonlendirme sonrasi
-      // ikinci bir /Me istegi atmaz.
-      queryClient.setQueryData(['currentUser'], currentUser);
-      navigate(redirectTo, { replace: true });
-    },
+    mutationFn: login,
+    onSuccess: () => navigate(redirectTo, { replace: true }),
     onError: error => handleFormApiError(error, form.setError)
   });
 
