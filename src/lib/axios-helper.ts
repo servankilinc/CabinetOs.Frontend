@@ -23,10 +23,7 @@ class AxiosService {
       // Backend refresh token'i HttpOnly cookie ile yaziyor. Refresh su an
       // kullanilmasa da cookie'nin tasinmasi icin acik birakilir; kapatilirsa
       // refresh eklendiginde sessizce calismaz.
-      withCredentials: true,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      withCredentials: true
     });
 
     this._axios.interceptors.request.use(
@@ -35,6 +32,12 @@ class AxiosService {
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
         }
+
+        // FormData'da Content-Type ACIKCA silinir.
+        if (config.data instanceof FormData) {
+          delete config.headers['Content-Type'];
+        }
+
         return config;
       },
       error => Promise.reject(error)
