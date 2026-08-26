@@ -128,3 +128,58 @@
     @apply font-sans;
     }
 }
+
+/*
+ * React Flow kontrol/minimap temasi.
+ *
+ * RF kendi stillerini (dist/style.css) getirir ve uygulamanin token'larini
+ * bilmez: zoom butonlari kendi acik zeminini kullanirken ikonlar bizim
+ * `currentColor`imizi aliyordu, sonuc acik temada beyaz uzerine beyazdi.
+ * Bilesene ayrica `colorMode` gecilir; asagisi RF'in kendi temasini
+ * uygulamanin paletiyle hizalar.
+ */
+.react-flow__controls {
+  box-shadow: 0 1px 3px 0 oklch(0 0 0 / 12%);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.react-flow__controls-button {
+  background-color: var(--background);
+  border-bottom: 1px solid var(--border);
+  color: var(--foreground);
+  width: 26px;
+  height: 26px;
+}
+
+.react-flow__controls-button:hover {
+  background-color: var(--muted);
+}
+
+.react-flow__controls-button:disabled {
+  opacity: 0.4;
+}
+
+/* RF ikonlari <svg> path'i olarak gelir ve fill'i stylesheet'inden alir. */
+.react-flow__controls-button svg {
+  fill: currentColor;
+  max-width: 13px;
+  max-height: 13px;
+}
+
+.react-flow__minimap {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.react-flow__minimap-mask {
+  fill: var(--muted);
+  fill-opacity: 0.6;
+}
+
+.react-flow__attribution {
+  background-color: transparent;
+  color: var(--muted-foreground);
+  font-size: 10px;
+}

@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter } from 'react-router';
 import { RouterProvider } from 'react-router/dom';
@@ -5,7 +6,6 @@ import '@/styles/index.css';
 
 // #region Layouts
 import BaseLayout from './layouts/base.tsx';
-import AdminLayout from './layouts/admin.tsx';
 import AppLayout from './layouts/app.tsx';
 // #endregion
 
@@ -46,6 +46,7 @@ const queryClient = new QueryClient({
 const router = createBrowserRouter([
   {
     Component: BaseLayout,
+    ErrorBoundary: ErrorViews.RouteErrorPage,
     children: [
       // #region (1) App-Layer
       {
@@ -53,21 +54,42 @@ const router = createBrowserRouter([
         children: [
           {
             path: '/',
+            // Tek layout: app.tsx ve admin.tsx byte-byte aynıydı, admin.tsx silindi.
             Component: AppLayout,
             children: [
               { index: true, Component: AppViews.Home },
-              { path: '/about', Component: AppViews.About }
-            ]
-          },
-          // #endregion
+              { path: 'about', Component: AppViews.About, handle: { crumb: 'Hakkında' } },
+              {
+                // Diyagram, /cabinets ALTINA yuvalanır: breadcrumb eşleşen route
+                // zincirinden türediği için, kardeş olsaydı "Kabinler / Diyagram"
+                // yerine yalnızca "Diyagram" görünürdü.
+                path: 'cabinets',
+                handle: { crumb: 'Kabinler' },
+                children: [
+                  { index: true, Component: AppViews.Cabinets },
+                  {
+                    // Lazy: @xyflow/react agir bir bagimlilik. Route seviyesinde
+                    // bolunmezse editore hic girmeyen kullanici da onu indirir.
+                    path: ':cabinetId/diagram',
+                    handle: { crumb: 'Diyagram' },
+                    lazy: async () => ({ Component: (await import('./views/app/diagram')).default })
+                  }
+                ]
+              },
+              // #endregion
 
-          // #region (2) Admin-Layer
-          {
-            path: '/admin',
-            Component: AdminLayout,
-            children: [{ index: true, Component: AdminViews.Home }]
+              // #region (2) Admin-Layer
+              {
+                path: 'admin',
+                handle: { crumb: 'Yönetim' },
+                children: [
+                  { index: true, Component: AdminViews.Home },
+                  { path: 'templates', Component: AdminViews.ComponentTemplates, handle: { crumb: 'Şablonlar' } }
+                ]
+              }
+              // #endregion
+            ]
           }
-          // #endregion
         ]
       },
 
@@ -79,15 +101,18 @@ const router = createBrowserRouter([
   },
   {
     path: '*',
-    Component: ErrorViews.NotFoundPage
+    Component: ErrorViews.NotFoundPage,
+    ErrorBoundary: ErrorViews.RouteErrorPage
   }
 ]);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <Provider store={store}>
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <ReactQueryDevtools initialIsOpen={false} />
-    </QueryClientProvider>
-  </Provider>
+  <StrictMode>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <RouterProvider router={router} />
+        {import.meta.env.DEV && <ReactQueryDevtools initialIsOpen={false} />}
+      </QueryClientProvider>
+    </Provider>
+  </StrictMode>
 );
