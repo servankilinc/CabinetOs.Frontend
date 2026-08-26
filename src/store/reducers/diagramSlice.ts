@@ -5,7 +5,14 @@ export interface NodePosition {
   y: number;
 }
 
-export type DiagramMode = 'select' | 'connect' | 'pan';
+/**
+ * Canvas'ta sol tuşun ne yaptığı.
+ *
+ * `connect` diye üçüncü bir mod YOK: kablo çizmek her zaman bir pin handle'ından
+ * başlar, yani hedefi zaten kendisi belirtiyor — ayrı bir mod, kullanıcıdan
+ * gereksiz bir hazırlık adımı istemek olurdu.
+ */
+export type DiagramMode = 'select' | 'pan';
 
 /**
  * Diyagram editorunun ISTEMCI durumu. Sunucudan gelen graf verisi (device / pin /
