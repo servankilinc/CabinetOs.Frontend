@@ -1,19 +1,21 @@
-import * as React from "react"
+import { useSyncExternalStore } from 'react';
 
-const MOBILE_BREAKPOINT = 768
+const MOBILE_BREAKPOINT = 768;
+const QUERY = `(max-width: ${MOBILE_BREAKPOINT - 1}px)`;
 
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+// Modul yuklenirken window'a dokunulmaz (test/node ortami icin); ilk kullanimda kurulur.
+let mediaQuery: MediaQueryList | null = null;
+function getMediaQuery(): MediaQueryList {
+  mediaQuery ??= window.matchMedia(QUERY);
+  return mediaQuery;
+}
 
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`)
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    }
-    mql.addEventListener("change", onChange)
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT)
-    return () => mql.removeEventListener("change", onChange)
-  }, [])
+function subscribe(onStoreChange: () => void): () => void {
+  const mql = getMediaQuery();
+  mql.addEventListener('change', onStoreChange);
+  return () => mql.removeEventListener('change', onStoreChange);
+}
 
-  return !!isMobile
+export function useIsMobile(): boolean {
+  return useSyncExternalStore(subscribe, () => getMediaQuery().matches);
 }

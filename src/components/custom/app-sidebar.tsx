@@ -1,42 +1,19 @@
-import * as React from 'react';
-import { useNavigate } from 'react-router';
+import type * as React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useCurrentUser } from '@/lib/auth-session';
-import { logout } from '@/api/auth';
-import {
-  Command,
-  LifeBuoy,
-  Send,
-  SquareTerminal,
-  ChevronRight,
-  type LucideIcon,
-  ChevronsUpDown,
-  Sparkles,
-  BadgeCheck,
-  CreditCard,
-  Bell,
-  LogOut
-} from 'lucide-react';
+import { CheckIcon, ChevronsUpDown, CpuIcon, LogOut, MonitorIcon, MoonIcon, ShapesIcon, SunIcon, Zap, type LucideIcon } from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
   useSidebar
 } from '@/components/ui/sidebar';
-
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,44 +23,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useCurrentUser } from '@/lib/auth-session';
+import { logout } from '@/api/auth';
+import { useAppDispatch, useAppSelector } from '@/hooks';
+import { setTheme, type Theme } from '@/store/reducers/themeSlice';
 
-const data = {
-  navMain: [
-    {
-      title: 'Playground',
-      url: '#',
-      icon: SquareTerminal,
-      isActive: true,
-      items: [
-        {
-          title: 'History',
-          url: '#'
-        },
-        {
-          title: 'Starred',
-          url: '#'
-        },
-        {
-          title: 'Settings',
-          url: '#'
-        }
-      ]
-    }
-  ],
-  navSecondary: [
-    {
-      title: 'Support',
-      url: '#',
-      icon: LifeBuoy
-    },
-    {
-      title: 'Feedback',
-      url: '#',
-      icon: Send
-    }
-  ]
-};
+/**
+ * Uygulama kenar çubuğu.
+ *
+ * shadcn şablonundan gelen demo verisi (Acme Inc / Enterprise, Playground /
+ * History / Starred, Support / Feedback, Upgrade to Pro, Account, Billing,
+ * Notifications) TAMAMEN kaldırıldı. Hepsi `url: '#'` ile ham `<a href>`
+ * kullanıyordu; bu hem hiçbir yere gitmiyor hem de router'ı baypas edip tam
+ * sayfa yenilemesi yapıyordu.
+ *
+ * Buraya yalnızca GERÇEK hedefler eklenir — boş bir sayfaya götüren bağlantı,
+ * olmayan bağlantıdan kötüdür. `/admin` kendisi hâlâ boş olduğu için listede
+ * yok; yalnızca gerçekten çalışan `/admin/templates` var.
+ */
+
+interface NavItem {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { title: 'Kabinler', url: '/cabinets', icon: CpuIcon },
+  { title: 'Şablonlar', url: '/admin/templates', icon: ShapesIcon }
+];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -91,26 +60,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              size='lg'
-              render={
-                <a href='#'>
-                  <div className='flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground'>
-                    <Command className='size-4' />
-                  </div>
-                  <div className='grid flex-1 text-left text-sm leading-tight'>
-                    <span className='truncate font-medium'>Acme Inc</span>
-                    <span className='truncate text-xs'>Enterprise</span>
-                  </div>
-                </a>
-              }></SidebarMenuButton>
+            <SidebarMenuButton size='lg' render={<Link to='/' />}>
+              <div className='bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg'>
+                <Zap className='size-4' />
+              </div>
+              <div className='grid flex-1 text-left text-sm leading-tight'>
+                <span className='truncate font-medium'>CabinetOS</span>
+                <span className='truncate text-xs'>Diyagram & SCADA</span>
+              </div>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
+
       <SidebarContent>
-        <MySidebarGroups items={data.navMain} />
-        <MySecondarySidebarGroups items={data.navSecondary} className='mt-auto' />
+        <MainNav />
       </SidebarContent>
+
       <SidebarFooter>
         <NavUser />
       </SidebarFooter>
@@ -118,127 +84,65 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   );
 }
 
-function MySidebarGroups({
-  items
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon: LucideIcon;
-    isActive?: boolean;
-    items?: {
-      title: string;
-      url: string;
-    }[];
-  }[];
-}) {
+function MainNav() {
+  const { pathname } = useLocation();
+
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Platform</SidebarGroupLabel>
+      <SidebarGroupLabel>Uygulama</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map(item => (
-          <Collapsible
-            key={item.title}
-            defaultOpen={item.isActive}
-            render={
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  render={
-                    <a href={item.url}>
-                      {' '}
-                      <item.icon /> <span>{item.title}</span>{' '}
-                    </a>
-                  }></SidebarMenuButton>
-                {item.items?.length ? (
-                  <>
-                    <CollapsibleTrigger
-                      render={
-                        <SidebarMenuAction className='data-[state=open]:rotate-90'>
-                          <ChevronRight />
-                          <span className='sr-only'>Toggle</span>
-                        </SidebarMenuAction>
-                      }></CollapsibleTrigger>
-                    <CollapsibleContent>
-                      <SidebarMenuSub>
-                        {item.items?.map(subItem => (
-                          <SidebarMenuSubItem key={subItem.title}>
-                            <SidebarMenuSubButton
-                              render={
-                                <a href={subItem.url}>
-                                  <span>{subItem.title}</span>
-                                </a>
-                              }></SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        ))}
-                      </SidebarMenuSub>
-                    </CollapsibleContent>
-                  </>
-                ) : null}
-              </SidebarMenuItem>
-            }></Collapsible>
+        {NAV_ITEMS.map(item => (
+          <SidebarMenuItem key={item.url}>
+            <SidebarMenuButton
+              tooltip={item.title}
+              // startsWith: /cabinets/:id/diagram icindeyken de "Kabinler" aktif kalir.
+              isActive={pathname === item.url || pathname.startsWith(`${item.url}/`)}
+              render={<Link to={item.url} />}>
+              <item.icon />
+              <span>{item.title}</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         ))}
       </SidebarMenu>
     </SidebarGroup>
   );
 }
 
-function MySecondarySidebarGroups({
-  items,
-  ...props
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon: LucideIcon;
-  }[];
-} & React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  return (
-    <SidebarGroup {...props}>
-      <SidebarGroupContent>
-        <SidebarMenu>
-          {items.map(item => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton
-                size='sm'
-                render={
-                  <a href={item.url}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </a>
-                }></SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
-  );
-}
+const THEME_OPTIONS: { value: Theme; label: string; icon: LucideIcon }[] = [
+  { value: 'light', label: 'Açık', icon: SunIcon },
+  { value: 'dark', label: 'Koyu', icon: MoonIcon },
+  { value: 'system', label: 'Sistem', icon: MonitorIcon }
+];
 
 function NavUser() {
   const { isMobile } = useSidebar();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const currentUser = useCurrentUser();
+  const dispatch = useAppDispatch();
+  const activeTheme = useAppSelector(s => s.theme.activeTheme);
 
   // UserBaseDto yalnizca id/fullName/companyId tasir; e-posta oturum yanitinda
-  // gelmedigi icin ilgili satir bosken hic basilmaz.
-  const user = {
-    name: currentUser?.fullName ?? '',
-    email: '',
-    avatar: ''
-  };
+  // gelmedigi icin hic gosterilmez.
+  const name = currentUser?.fullName ?? '';
+  const initials =
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map(part => part[0]?.toUpperCase() ?? '')
+      .join('') || '?';
 
   const logoutMutation = useMutation({
     mutationFn: logout,
     // logout() sunucu hatasinda bile yerel oturumu temizler; bu yuzden
-    // basari/hata ayrimi yapmadan her iki durumda da login e gidilir.
+    // basari/hata ayrimi yapmadan her iki durumda da login'e gidilir.
     onSettled: () => {
-      // logout() oturumu auth-session'dan zaten sildi; geride kalan sorgu cache'ini temizler
       queryClient.clear();
-      navigate("/login", { replace: true });
+      navigate('/login', { replace: true });
     }
   });
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -246,58 +150,40 @@ function NavUser() {
           <DropdownMenuTrigger
             render={
               <SidebarMenuButton size='lg' className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground'>
-                <Avatar className='h-8 w-8 rounded-lg'>
-                  <AvatarImage src={user.avatar} alt={user.name} />
-                  <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
+                <Avatar className='size-8 rounded-lg'>
+                  <AvatarFallback className='rounded-lg'>{initials}</AvatarFallback>
                 </Avatar>
                 <div className='grid flex-1 text-left text-sm leading-tight'>
-                  <span className='truncate font-medium'>{user.name}</span>
-                  {user.email && <span className='truncate text-xs'>{user.email}</span>}
+                  <span className='truncate font-medium'>{name}</span>
                 </div>
                 <ChevronsUpDown className='ml-auto size-4' />
               </SidebarMenuButton>
-            }></DropdownMenuTrigger>
+            }
+          />
           <DropdownMenuContent className='min-w-56 rounded-lg' side={isMobile ? 'bottom' : 'right'} align='end' sideOffset={4}>
-            <DropdownMenuGroup>
-              <DropdownMenuLabel className='p-0 font-normal'>
-                <div className='flex items-center gap-2 px-1 py-1.5 text-left text-sm'>
-                  <Avatar className='h-8 w-8 rounded-lg'>
-                    <AvatarImage src={user.avatar} alt={user.name} />
-                    <AvatarFallback className='rounded-lg'>CN</AvatarFallback>
-                  </Avatar>
-                  <div className='grid flex-1 text-left text-sm leading-tight'>
-                    <span className='truncate font-medium'>{user.name}</span>
-                    {user.email && <span className='truncate text-xs'>{user.email}</span>}
-                  </div>
-                </div>
-              </DropdownMenuLabel>
-            </DropdownMenuGroup>
+            {/* Duz <div>: DropdownMenuLabel = Base UI `Menu.GroupLabel` ve bir
+                GRUBU etiketlemek zorunda (Radix'in serbest Label'i degil).
+                Kullanici adi bir grubun basligi degil, menunun basligi. */}
+            <div className='text-muted-foreground truncate px-1.5 py-1 text-xs font-medium'>{name}</div>
             <DropdownMenuSeparator />
+
+            {/* Tema secimi Redux'ta duruyordu ama onu degistirecek HICBIR arayuz
+                yoktu; menudeki olu maddelerin yerini gercek bir islev aldi. */}
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
+              <DropdownMenuLabel>Tema</DropdownMenuLabel>
+              {THEME_OPTIONS.map(option => (
+                <DropdownMenuItem key={option.value} onClick={() => dispatch(setTheme(option.value))}>
+                  <option.icon />
+                  {option.label}
+                  {activeTheme === option.value && <CheckIcon className='ml-auto size-4' />}
+                </DropdownMenuItem>
+              ))}
             </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => logoutMutation.mutate()} disabled={logoutMutation.isPending}>
               <LogOut />
-              {logoutMutation.isPending ? "Cikis yapiliyor..." : "Log out"}
+              {logoutMutation.isPending ? 'Çıkış yapılıyor…' : 'Çıkış yap'}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
