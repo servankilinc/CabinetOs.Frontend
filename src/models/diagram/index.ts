@@ -10,20 +10,14 @@ export {
 
 // Bulk save gövdesi: zod YOK — makine tarafından üretilir, bkz. dosyanın başlığı.
 export {
-  TEMP_ID_PREFIX,
-  newTempId,
-  isTempId,
   emptyDelta,
   isDeltaEmpty,
   isSaveRequestEmpty,
   type EntityDelta,
   type DiagramSaveRequest,
-  type DeviceCreateDraft,
-  type DeviceUpdateDraft,
-  type ConnectionCreateDraft,
-  type ConnectionUpdateDraft,
-  type AnnotationCreateDraft,
-  type AnnotationUpdateDraft
+  type DeviceDraft,
+  type ConnectionDraft,
+  type AnnotationDraft
 } from './commands/diagramSaveRequest';
 
 // Queries — sunucu ciktisi, saf interface
@@ -39,4 +33,4 @@ export type { DiagramAnnotationItemDto } from './queries/diagramAnnotationItemDt
 export type { DiagramCanvasSettingsDto } from './queries/diagramCanvasSettingsDto';
 export type { ComponentTemplatePaletteDto } from './queries/componentTemplatePaletteDto';
 export type { TemplateImageDto } from './queries/templateImageDto';
-export type { DiagramSaveResponse, IdMapEntry } from './queries/diagramSaveResponse';
+export type { DiagramSaveResponse } from './queries/diagramSaveResponse';

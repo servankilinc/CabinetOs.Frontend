@@ -1,13 +1,9 @@
-"use client"
-
-import { TrendingUp } from "lucide-react"
 import { Area, AreaChart, CartesianGrid, XAxis, PolarAngleAxis, PolarGrid, Radar, RadarChart, YAxis, Bar, BarChart } from "recharts"
 
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
@@ -87,14 +83,6 @@ export function ChartAreaGradient() {
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="mt-auto flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Bu ay %5.2 artış gösterdi <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Son 6 ayda yapılan toplam işlem sayısını gösterir
-        </div>
-      </CardFooter>
     </Card>
   )
 }
@@ -149,14 +137,6 @@ export function ChartRadarMultiple() {
           </RadarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="mt-auto flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 leading-none font-medium">
-          Genel olarak verimlilik arttı <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="flex items-center gap-2 leading-none text-muted-foreground text-center">
-          Son 30 günün istatistikleridir
-        </div>
-      </CardFooter>
     </Card>
   )
 }
@@ -214,14 +194,6 @@ export function ChartBarMixed() {
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="mt-auto flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 leading-none font-medium">
-          Ahmet Y. öne çıkıyor <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          En fazla işlem yapan operatörler
-        </div>
-      </CardFooter>
     </Card>
   )
 }

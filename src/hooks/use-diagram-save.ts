@@ -35,7 +35,11 @@ export interface UseDiagramSaveParams {
    * Gönderilecek bir şey yoksa `null` döner.
    */
   buildRequest: () => { request: DiagramSaveRequest; sent: DiagramJournal } | null;
-  onSuccess: (response: DiagramSaveResponse) => void;
+  /**
+   * `sent` başarıda da verilir: gövdede giden her kayıt artık sunucuda vardır ve
+   * "kaydedilmemiş" defterinden düşürülmelidir (bkz. `lib/diagram/unsaved-store.ts`).
+   */
+  onSuccess: (response: DiagramSaveResponse, sent: DiagramJournal) => void;
   onFailure: (sent: DiagramJournal, error: unknown) => void;
 }
 
@@ -73,7 +77,7 @@ export function useDiagramSave({ cabinetId, buildRequest, onSuccess, onFailure }
       try {
         const response = await saveDiagram(cabinetId, request);
         if (unmountedRef.current) return;
-        onSuccessRef.current(response);
+        onSuccessRef.current(response, sent);
         setLastSavedAt(response.savedAtUtc);
         setErrorMessage(null);
         setStatus('idle');

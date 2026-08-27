@@ -14,33 +14,29 @@ import type { PointDto } from '../queries/pointDto';
  * doğrulanır, gönderim anında değil.
  */
 
-/** Tek bir varlık ailesinin değişiklik kümesi. `deleted` bir Id dizisidir. */
-export interface EntityDelta<TCreate, TUpdate> {
-  created: TCreate[];
-  updated: TUpdate[];
+/**
+ * Tek bir varlık ailesinin değişiklik kümesi.
+ *
+ * **`created`/`updated` ayrımı YOKTUR.** Guid'i istemci ürettiği için bir
+ * taslağın yeni mi mevcut mu olduğu sunucuda tek bir yerde — Id veritabanında
+ * var mı — cevaplanır. İstemcinin bunu ayrıca takip etmesi gerekmez.
+ */
+export interface EntityDelta<T> {
+  upserted: T[];
+  /**
+   * Karşılığı bulunamayan Id'ler sunucuda SESSİZCE ATLANIR (`skippedDeleteCount`).
+   * Bu yüzden buraya hiç kaydedilmemiş bir kaydın Id'si düşse bile gönderi
+   * bozulmaz.
+   */
   deleted: string[];
 }
 
-
-/**
- * Geçici kimliklerin zorunlu öneki.
- *
- * Sunucu bunu dayatır ve istemci de aynısına yaslanır: React Flow'da node/edge
- * id'leri tek bir string uzayında yaşar, "bu daha kaydedilmemiş mi" sorusu
- * `id.startsWith(TEMP_ID_PREFIX)` ile cevaplanır.
- */
-export const TEMP_ID_PREFIX = 'tmp_';
-
-export function newTempId(): string {
-  return `${TEMP_ID_PREFIX}${crypto.randomUUID()}`;
-}
-
-export function isTempId(id: string): boolean {
-  return id.startsWith(TEMP_ID_PREFIX);
-}
-
-export interface DeviceCreateDraft {
-  tempId: string;
+export interface DeviceDraft {
+  id: string;
+  /**
+   * Yalnızca OLUŞTURMADA kullanılır. Mevcut bir cihazın şablonu değiştirilemez —
+   * farklı gönderilirse sunucu 400 döner.
+   */
   componentTemplateId: string;
   name: string;
   coordinateX: number;
@@ -52,31 +48,13 @@ export interface DeviceCreateDraft {
   externalCode: string | null;
 }
 
-/**
- * TAM durum, patch değil. Burada OLMAYAN alanlar sunucuda dokunulmadan kalır —
- * `deviceStatusId` / `lastSeen` (telemetri) ve `ipAddress` / `macAddress` (cihaz
- * yönetimi) bilerek dışarıda: kaydetmek SCADA'nın yazdığı değerleri ezmemeli.
- */
-export interface DeviceUpdateDraft {
+export interface ConnectionDraft {
   id: string;
-  name: string;
-  coordinateX: number;
-  coordinateY: number;
-  rotation: number;
-  zIndex: number;
-  isLocked: boolean;
-  isVisible: boolean;
-  externalCode: string | null;
-}
-
-export interface ConnectionCreateDraft {
-  tempId: string;
   /**
-   * Uçlar her zaman KALICI pin Id'sidir.
+   * Uçlar her zaman KALICI pin Id'sidir ve mevcut bir kabloda DEĞİŞTİRİLEMEZ
+   * (farklı gönderilirse 400). Bir kablonun ucunu taşımak sil + oluştur'dur.
    *
-   * Pinler yalnızca sunucuda, cihaz oluşturulurken şablondan üretilir; aynı
-   * gönderide doğan bir pine kablo çizmek mümkün değil. Cihaz üzerinde elle pin
-   * yazarlığı eklenirse burada birer `*TempId` gerekecek.
+   * Pinler yalnızca sunucuda, cihaz oluşturulurken şablondan üretilir.
    */
   sourcePinId: string;
   targetPinId: string;
@@ -90,40 +68,7 @@ export interface ConnectionCreateDraft {
   zIndex: number;
 }
 
-/** Uçlar YOK: bir kablonun ucunu taşımak sil + oluşturdur (bkz. sözleşme). */
-export interface ConnectionUpdateDraft {
-  id: string;
-  label: string | null;
-  wireType: WireType;
-  color: string;
-  lineStyle: LineStyle;
-  strokeWidth: number;
-  routing: EdgeRouting;
-  waypoints: PointDto[];
-  zIndex: number;
-}
-
-export interface AnnotationCreateDraft {
-  tempId: string;
-  name: string;
-  coordinateX: number;
-  coordinateY: number;
-  width: number;
-  height: number;
-  rotation: number;
-  zIndex: number;
-  isLocked: boolean;
-  isVisible: boolean;
-  text: string;
-  shape: AnnotationShape;
-  backgroundColor: string;
-  fontColor: string;
-  fontSize: number;
-  isBold: boolean;
-  borderColor: string;
-}
-
-export interface AnnotationUpdateDraft {
+export interface AnnotationDraft {
   id: string;
   name: string;
   coordinateX: number;
@@ -143,19 +88,26 @@ export interface AnnotationUpdateDraft {
   borderColor: string;
 }
 
-/** `cabinetId` ROTADAN gider, gövdede YOKTUR. */
+/**
+ * `cabinetId` ROTADAN gider, gövdede YOKTUR.
+ *
+ * Taslaklar TAM durumdur, patch değil. Burada OLMAYAN alanlar sunucuda
+ * dokunulmadan kalır — `deviceStatusId` / `lastSeen` (telemetri) ve `ipAddress` /
+ * `macAddress` (cihaz yönetimi) bilerek dışarıda: kaydetmek SCADA'nın yazdığı
+ * değerleri ezmemeli.
+ */
 export interface DiagramSaveRequest {
-  devices: EntityDelta<DeviceCreateDraft, DeviceUpdateDraft>;
-  connections: EntityDelta<ConnectionCreateDraft, ConnectionUpdateDraft>;
-  annotations: EntityDelta<AnnotationCreateDraft, AnnotationUpdateDraft>;
+  devices: EntityDelta<DeviceDraft>;
+  connections: EntityDelta<ConnectionDraft>;
+  annotations: EntityDelta<AnnotationDraft>;
 }
 
-export function emptyDelta<TCreate, TUpdate>(): EntityDelta<TCreate, TUpdate> {
-  return { created: [], updated: [], deleted: [] };
+export function emptyDelta<T>(): EntityDelta<T> {
+  return { upserted: [], deleted: [] };
 }
 
-export function isDeltaEmpty(delta: EntityDelta<unknown, unknown>): boolean {
-  return delta.created.length === 0 && delta.updated.length === 0 && delta.deleted.length === 0;
+export function isDeltaEmpty(delta: EntityDelta<unknown>): boolean {
+  return delta.upserted.length === 0 && delta.deleted.length === 0;
 }
 
 export function isSaveRequestEmpty(request: DiagramSaveRequest): boolean {

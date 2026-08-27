@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useSendCommand } from '@/hooks/use-device-commands';
 import { useDiagramCanvasContext } from '@/lib/diagram/canvas-context';
-import { isTempId } from '@/models/diagram';
+import { useIsUnsaved } from '@/lib/diagram/unsaved-store';
 import type { DiagramDeviceDto, DiagramIoChannelDto } from '@/models/diagram';
 import { PULSE_DURATION_MAX_MS, PULSE_DURATION_MIN_MS, type DeviceCommandSendRequest } from '@/models/deviceCommand';
 import { DeviceCommandType, PinDirection } from '@/models/enums';
@@ -49,6 +49,8 @@ export function DeviceNodeMenu({ device, children }: { device: DiagramDeviceDto;
   const send = useSendCommand(device.id);
   const [pending, setPending] = useState<PendingCommand | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Erken dönüşten ÖNCE: hook sırası koşullu olamaz.
+  const isUnsaved = useIsUnsaved(device.id);
 
   if (!context) return <>{children}</>;
 
@@ -56,7 +58,7 @@ export function DeviceNodeMenu({ device, children }: { device: DiagramDeviceDto;
   // GEÇERLİDİR: adı gereği çıkış da verebilir.
   const targets = device.ioChannels.filter(channel => channel.isEnabled && channel.direction !== PinDirection.Input);
 
-  const blocker = findBlocker(device, context.scadaIsEnabled);
+  const blocker = findBlocker(device, context.scadaIsEnabled, isUnsaved);
 
   const dispatch = (request: DeviceCommandSendRequest) => send.mutate(request);
 
@@ -177,8 +179,10 @@ export function DeviceNodeMenu({ device, children }: { device: DiagramDeviceDto;
  * Sıra sunucudaki ön kontrol sırasıyla aynı tutuldu ki kullanıcı önce hangi
  * engelle karşılaşacaksa onu görsün.
  */
-function findBlocker(device: DiagramDeviceDto, scadaIsEnabled: boolean): string | null {
-  if (isTempId(device.id)) return 'Cihaz henüz kaydedilmedi. Kaydettikten sonra kumanda gönderilebilir.';
+function findBlocker(device: DiagramDeviceDto, scadaIsEnabled: boolean, isUnsaved: boolean): string | null {
+  // Kaydedilmemişlik Id'den OKUNAMAZ (Guid'i istemci üretiyor); çağıran taraf
+  // `useIsUnsaved` ile okuyup buraya geçirir.
+  if (isUnsaved) return 'Cihaz henüz kaydedilmedi. Kaydettikten sonra kumanda gönderilebilir.';
   if (!scadaIsEnabled) return 'Bu kabinde SCADA kapalı; kumanda gönderilemez.';
   if (!device.externalCode) return 'Cihazın dış kodu yok — SCADA onu tanımaz. Özellikler panelinden ekleyin.';
   return null;

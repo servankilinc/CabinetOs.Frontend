@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { applyEdgeChanges, applyNodeChanges, type Connection, type Edge, type EdgeChange, type NodeChange, type XYPosition } from '@xyflow/react';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -6,15 +6,14 @@ import { diagramKeys } from '@/api/query-keys';
 import { useAppDispatch } from '@/hooks';
 import { ConnectionRejectionMessages, buildConnectionContext, validateConnection } from '@/lib/diagram/connection-rules';
 import { buildSaveRequest } from '@/lib/diagram/build-save-request';
-import { applyIdMapToEdges, applyIdMapToNodes, hasAnyMapping, toGraphIdMaps } from '@/lib/diagram/id-map';
+import { forgetUnsaved, markSaved, markUnsaved, resetUnsaved } from '@/lib/diagram/unsaved-store';
 import {
-  applyIdMapToJournal,
   createJournal,
   journalSize,
-  markCreated,
   markDeleted,
-  markUpdated,
+  markTouched,
   mergeJournal,
+  touchedIds,
   type DiagramJournal,
   type JournalFamily
 } from '@/lib/diagram/journal';
@@ -23,9 +22,9 @@ import { toRfEdge, type DiagramEdge } from '@/lib/diagram/to-rf-edges';
 import { toAnnotationNode, toDeviceNode, toRfNodes, type DiagramNode } from '@/lib/diagram/to-rf-nodes';
 import { toRfEdges } from '@/lib/diagram/to-rf-edges';
 import { AnnotationShape, EdgeRouting, LineStyle, WireType } from '@/models/enums';
+import { newId } from '@/lib/sequential-id';
 import {
   isSaveRequestEmpty,
-  newTempId,
   type ComponentTemplatePaletteDto,
   type DiagramAnnotationItemDto,
   type DiagramConnectionDto,
@@ -98,6 +97,11 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
   const [dirtyCount, setDirtyCount] = useState(0);
 
   const journalRef = useRef<DiagramJournal>(createJournal());
+
+  // "Kaydedilmemiş" defteri modül düzeyinde yaşıyor (bileşen ağacına bağlanmayan
+  // yerlerden de sorulabilmesi için); dolayısıyla editör kapanırken TEMİZLENMELİ,
+  // yoksa başka bir kabin açıldığında eski kimlikler orada durur.
+  useEffect(() => resetUnsaved, []);
   // Kaydetme geri çağrıları render dışında çalışır; state'i doğrudan okuyamazlar.
   const nodesRef = useRef(nodes);
   const edgesRef = useRef(edges);
@@ -137,21 +141,15 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
   }, []);
 
   const handleSaved = useCallback(
-    (response: DiagramSaveResponse) => {
-      const maps = toGraphIdMaps(response);
-      if (hasAnyMapping(maps)) {
-        setNodes(current => applyIdMapToNodes(current, maps));
-        setEdges(current => applyIdMapToEdges(current, maps));
-        applyIdMapToJournal(journalRef.current, 'devices', maps.devices);
-        applyIdMapToJournal(journalRef.current, 'connections', maps.connections);
-        applyIdMapToJournal(journalRef.current, 'annotations', maps.annotations);
-      }
-
+    (response: DiagramSaveResponse, sent: DiagramJournal) => {
+      // Kimlik yeniden yazma YOK: Id'leri istemci üretti, sunucu onları aynen
+      // kullandı. Gövdede giden her kayıt artık kalıcı.
+      markSaved(touchedIds(sent));
       syncDirty();
 
-      // Şablondan üretilen pinlerin geçici kimliği YOK — idMap ile öğrenilemezler.
-      // Grafı yeniden çekmek tek yol; aksi halde yeni bırakılan cihaz pinsiz kalır
-      // ve hiçbir kablo bağlanamaz.
+      // Şablondan üretilen pinlerin Id'sini SUNUCU üretir; istemci onları
+      // bilemez. Grafı yeniden çekmek tek yol, aksi halde yeni bırakılan cihaz
+      // pinsiz kalır ve hiçbir kablo bağlanamaz.
       //
       // "invalidateQueries kullanma" kuralının istisnası burasıdır: gelen veri
       // aşağıdaki senkron koşulundan geçer, yani kaydedilmemiş bir düzenleme
@@ -218,6 +216,9 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
         // tek başına bu kural trafiğin neredeyse tamamını siler.
         if (change.type !== 'remove') continue;
         markDeleted(journalRef.current, familyOf(nodesRef.current.find(n => n.id === change.id)), change.id);
+        // Hiç kaydedilmemiş bir kayıt silindiyse defterden de düşer; kalsaydı
+        // oturum boyunca büyüyen ölü bir küme olurdu.
+        forgetUnsaved(change.id);
         changed = true;
       }
 
@@ -233,6 +234,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
       for (const change of changes) {
         if (change.type !== 'remove') continue;
         markDeleted(journalRef.current, 'connections', change.id);
+        forgetUnsaved(change.id);
         changed = true;
       }
 
@@ -249,7 +251,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
       const moved = draggedNodes.length > 0 ? draggedNodes : [node];
       const movedIds = new Set(moved.map(n => n.id));
 
-      for (const item of moved) markUpdated(journalRef.current, familyOf(item), item.id);
+      for (const item of moved) markTouched(journalRef.current, familyOf(item), item.id);
 
       // Taşınan node'un DTO'sundaki koordinatı da tazele: gönderi `node.position`
       // okuyor ama özellikler paneli DTO'ya bakıyor, ikisi ayrışmamalı.
@@ -275,9 +277,9 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
         return;
       }
 
-      const tempId = newTempId();
+      const id = newId();
       const draft: DiagramConnectionDto = {
-        id: tempId,
+        id,
         cabinetId,
         sourcePinId: connection.sourceHandle!,
         targetPinId: connection.targetHandle!,
@@ -294,7 +296,8 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
       };
 
       setEdges(current => [...current, toRfEdge(draft)]);
-      markCreated(journalRef.current, 'connections', tempId);
+      markTouched(journalRef.current, 'connections', id);
+      markUnsaved(id);
       touch();
     },
     [cabinetId, connectionContext, touch]
@@ -302,9 +305,9 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
 
   const addDeviceFromTemplate = useCallback(
     (template: ComponentTemplatePaletteDto, position: XYPosition) => {
-      const tempId = newTempId();
+      const id = newId();
       const device: DiagramDeviceDto = {
-        id: tempId,
+        id,
         name: nextDeviceName(template.name, nodesRef.current),
         coordinateX: position.x,
         coordinateY: position.y,
@@ -334,7 +337,8 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
       };
 
       setNodes(current => [...current, toDeviceNode(device)]);
-      markCreated(journalRef.current, 'devices', tempId);
+      markTouched(journalRef.current, 'devices', id);
+      markUnsaved(id);
       touch();
     },
     [touch]
@@ -359,7 +363,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
           };
         })
       );
-      markUpdated(journalRef.current, 'devices', id);
+      markTouched(journalRef.current, 'devices', id);
       touch();
     },
     [touch]
@@ -367,15 +371,16 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
 
   const addAnnotation = useCallback(
     (shape: AnnotationShape, position: XYPosition) => {
-      const tempId = newTempId();
+      const id = newId();
       const takenNames = nodesRef.current.filter(node => node.type === 'annotation').map(node => node.data.annotation.name);
       // Kaydırma TÜM node'lara bakıyor, yalnızca notlara değil: yeni notun bir
       // cihazın tam altında doğması da onu görünmez yapardı.
       const spot = cascadePosition(position, nodesRef.current.map(node => node.position));
-      const annotation = newAnnotationDraft(tempId, shape, spot, takenNames);
+      const annotation = newAnnotationDraft(id, shape, spot, takenNames);
 
       setNodes(current => [...current, toAnnotationNode(annotation)]);
-      markCreated(journalRef.current, 'annotations', tempId);
+      markTouched(journalRef.current, 'annotations', id);
+      markUnsaved(id);
       touch();
     },
     [touch]
@@ -403,7 +408,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
           };
         })
       );
-      markUpdated(journalRef.current, 'annotations', id);
+      markTouched(journalRef.current, 'annotations', id);
       touch();
     },
     [touch]
@@ -424,7 +429,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
           return { ...next, selected: edge.selected };
         })
       );
-      markUpdated(journalRef.current, 'connections', id);
+      markTouched(journalRef.current, 'connections', id);
       touch();
     },
     [touch]
@@ -468,10 +473,10 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
       if (node?.type !== 'template') return;
 
       const source = node.data.device;
-      const tempId = newTempId();
+      const copyId = newId();
       const device: DiagramDeviceDto = {
         ...source,
-        id: tempId,
+        id: copyId,
         // Ad KAYNAKTAN türetiliyor, şablondan değil: kullanıcı cihaza "PSU-Ana"
         // dediyse kopyanın "Güç Kaynağı 4" olması bağlamı kaybettirir.
         name: nextDeviceName(source.name, nodesRef.current),
@@ -493,7 +498,8 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
       };
 
       setNodes(current => [...current, toDeviceNode(device)]);
-      markCreated(journalRef.current, 'devices', tempId);
+      markTouched(journalRef.current, 'devices', copyId);
+      markUnsaved(copyId);
       touch();
     },
     [touch]
@@ -511,7 +517,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
         })
       );
 
-      for (const id of ids) markUpdated(journalRef.current, familyOf(nodesRef.current.find(n => n.id === id)), id);
+      for (const id of ids) markTouched(journalRef.current, familyOf(nodesRef.current.find(n => n.id === id)), id);
       touch();
     },
     [familyOf, touch]
