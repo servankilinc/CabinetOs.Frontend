@@ -84,6 +84,7 @@ const router = createBrowserRouter([
                 handle: { crumb: 'Yönetim' },
                 children: [
                   { index: true, Component: AdminViews.Home },
+                  { path: 'companies', Component: AdminViews.Companies, handle: { crumb: 'Firmalar' } },
                   { path: 'templates', Component: AdminViews.ComponentTemplates, handle: { crumb: 'Şablonlar' } }
                 ]
               }

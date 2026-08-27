@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { Link } from 'react-router';
-import { CpuIcon, MapPinIcon } from 'lucide-react';
+import { CpuIcon, MapPinIcon, PencilIcon, PlusIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CabinetStatusBadge } from '@/components/diagram/diagram-toolbar';
+import { CabinetFormDialog } from '@/components/cabinet/cabinet-form-dialog';
 import type { CabinetDetailDto } from '@/models/cabinet';
 import { useCabinets } from '@/hooks/use-cabinets';
 
@@ -16,31 +18,46 @@ import { useCabinets } from '@/hooks/use-cabinets';
  */
 export default function Cabinets() {
   const { data, isPending, isError, error } = useCabinets();
+  const [isCreating, setIsCreating] = useState(false);
+  const [editing, setEditing] = useState<CabinetDetailDto | null>(null);
 
   return (
     <div className='flex flex-col gap-4 p-4'>
-      <div>
-        <h1 className='text-lg font-semibold'>Kabinler</h1>
-        <p className='text-muted-foreground text-sm'>Diyagramını açmak için bir kabin seçin.</p>
+      <div className='flex flex-wrap items-start justify-between gap-3'>
+        <div>
+          <h1 className='text-lg font-semibold'>Kabinler</h1>
+          <p className='text-sm text-muted-foreground'>Diyagramını açmak için bir kabin seçin.</p>
+        </div>
+        <Button size='sm' onClick={() => setIsCreating(true)}>
+          <PlusIcon />
+          Yeni kabin
+        </Button>
       </div>
 
-      {isError && <p className='text-destructive text-sm'>{error.message}</p>}
+      {isError && <p className='text-sm text-destructive'>{error.message}</p>}
 
       <div className='grid gap-3 sm:grid-cols-2 lg:grid-cols-3'>
         {isPending && Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className='h-36 w-full rounded-xl' />)}
-        {data?.map(cabinet => <CabinetCard key={cabinet.id} cabinet={cabinet} />)}
+        {data?.map(cabinet => <CabinetCard key={cabinet.id} cabinet={cabinet} onEdit={() => setEditing(cabinet)} />)}
       </div>
 
       {data?.length === 0 && (
         <Card>
-          <CardContent className='text-muted-foreground py-8 text-center text-sm'>Henüz kabin yok.</CardContent>
+          <CardContent className='py-8 text-center text-sm text-muted-foreground'>Henüz kabin yok.</CardContent>
         </Card>
+      )}
+
+      <CabinetFormDialog open={isCreating} onOpenChange={setIsCreating} />
+      {/* `key` ile her kabin için TAZE bir dialog: form state'i bir önceki
+          kabinden taşınmasın diye. */}
+      {editing && (
+        <CabinetFormDialog key={editing.id} open onOpenChange={open => !open && setEditing(null)} cabinet={editing} />
       )}
     </div>
   );
 }
 
-function CabinetCard({ cabinet }: { cabinet: CabinetDetailDto }) {
+function CabinetCard({ cabinet, onEdit }: { cabinet: CabinetDetailDto; onEdit: () => void }) {
   return (
     <Card className={cabinet.isActive ? undefined : 'opacity-60'}>
       <CardHeader>
@@ -60,15 +77,20 @@ function CabinetCard({ cabinet }: { cabinet: CabinetDetailDto }) {
         </div>
 
         {cabinet.locationDescription && (
-          <p className='text-muted-foreground flex items-center gap-1 truncate text-xs'>
+          <p className='flex items-center gap-1 truncate text-xs text-muted-foreground'>
             <MapPinIcon className='size-3 shrink-0' />
             {cabinet.locationDescription}
           </p>
         )}
 
-        <Button size='sm' variant='outline' render={<Link to={`/cabinets/${cabinet.id}/diagram`} />}>
-          Diyagramı aç
-        </Button>
+        <div className='flex gap-2'>
+          <Button size='sm' variant='outline' className='flex-1' render={<Link to={`/cabinets/${cabinet.id}/diagram`} />}>
+            Diyagramı aç
+          </Button>
+          <Button size='sm' variant='outline' onClick={onEdit} aria-label={`${cabinet.name} kabinini düzenle`}>
+            <PencilIcon />
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

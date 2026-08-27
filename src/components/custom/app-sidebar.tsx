@@ -1,7 +1,19 @@
 import type * as React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckIcon, ChevronsUpDown, CpuIcon, LogOut, MonitorIcon, MoonIcon, ShapesIcon, SunIcon, Zap, type LucideIcon } from 'lucide-react';
+import {
+  Building2Icon,
+  CheckIcon,
+  ChevronsUpDown,
+  CpuIcon,
+  LogOut,
+  MonitorIcon,
+  MoonIcon,
+  ShapesIcon,
+  SunIcon,
+  Zap,
+  type LucideIcon
+} from 'lucide-react';
 import {
   Sidebar,
   SidebarContent,
@@ -51,6 +63,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { title: 'Kabinler', url: '/cabinets', icon: CpuIcon },
+  { title: 'Firmalar', url: '/admin/companies', icon: Building2Icon },
   { title: 'Şablonlar', url: '/admin/templates', icon: ShapesIcon }
 ];
 

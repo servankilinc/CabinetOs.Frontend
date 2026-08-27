@@ -17,5 +17,12 @@ export const diagramKeys = {
 export const cabinetKeys = {
   all: ['cabinet'] as const,
   list: () => [...cabinetKeys.all, 'list'] as const,
-  detail: (id: string) => [...cabinetKeys.all, 'detail', id] as const
+  detail: (id: string) => [...cabinetKeys.all, 'detail', id] as const,
+  /** Düzenleme formunun kaynağı (`GET /{id}/update`) — SCADA alanları yalnızca burada. */
+  updateModel: (id: string) => [...cabinetKeys.all, 'update-model', id] as const
+};
+
+export const companyKeys = {
+  all: ['company'] as const,
+  list: () => [...companyKeys.all, 'list'] as const
 };
