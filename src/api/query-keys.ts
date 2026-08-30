@@ -1,6 +1,7 @@
 /**
  * TanStack Query anahtarları.
  */
+import type { ChannelEventQueryRequest } from '@/models/channelEvent';
 
 export const diagramKeys = {
   all: ['diagram'] as const,
@@ -25,4 +26,22 @@ export const cabinetKeys = {
 export const companyKeys = {
   all: ['company'] as const,
   list: () => [...companyKeys.all, 'list'] as const
+};
+
+export const cameraKeys = {
+  all: ['camera'] as const,
+  /** Kabin başına liste; `includePassive` ayrı bir anahtar — iki liste farklı veri. */
+  byCabinet: (cabinetId: string, includePassive: boolean) =>
+    [...cameraKeys.all, 'cabinet', cabinetId, includePassive] as const,
+  detail: (id: string) => [...cameraKeys.all, 'detail', id] as const
+};
+
+export const channelEventKeys = {
+  all: ['channel-event'] as const,
+  /**
+   * Filtre nesnesinin TAMAMI anahtara giriyor: tarih aralığı veya kanal
+   * değiştiğinde bu başka bir sorgudur. Yalnızca `cabinetId` ile anahtarlamak,
+   * filtre değişiminde eski sayfayı göstermeye devam etmek olurdu.
+   */
+  list: (request: ChannelEventQueryRequest) => [...channelEventKeys.all, 'list', request] as const
 };

@@ -332,6 +332,83 @@ export const CommandStatusLabels: Record<CommandStatus, string> = {
 };
 
 // ─────────────────────────────────────────────────────────────
+//  İzleme (kamera)
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * Kameranın video akışında kullandığı sıkıştırma. 0 değeri YOKTUR.
+ *
+ * Neden alan olarak duruyor: canlı izleme WebRTC üzerinden gider ve
+ * tarayıcılarda H.265 desteği yoktur. Alan, H.265'e ayarlı bir kameranın
+ * sessizce transcode edilmek yerine AÇIKÇA reddedilmesini sağlar.
+ */
+export const VideoCodec = {
+  H264: 1,
+  H265: 2
+} as const;
+export type VideoCodec = (typeof VideoCodec)[keyof typeof VideoCodec];
+
+export const VideoCodecLabels: Record<VideoCodec, string> = {
+  [VideoCodec.H264]: 'H.264',
+  [VideoCodec.H265]: 'H.265'
+};
+
+/**
+ * Hangi akışın izleneceği. 0 değeri YOKTUR.
+ *
+ * Ayrı bir seçim olarak var, çünkü aksi hâlde arayüz her yerde ana akımı açar:
+ * 16 kameralık bir liste ekranında 16 adet 1080p akış demektir.
+ */
+export const StreamProfile = {
+  /** Yüksek kalite — tam ekran / tek kamera görünümü. */
+  Main: 1,
+  /** Düşük bant genişliği — liste, küçük önizleme. */
+  Sub: 2
+} as const;
+export type StreamProfile = (typeof StreamProfile)[keyof typeof StreamProfile];
+
+export const StreamProfileLabels: Record<StreamProfile, string> = {
+  [StreamProfile.Main]: 'Ana Akım',
+  [StreamProfile.Sub]: 'Tali Akım'
+};
+
+/**
+ * Merkeze alınan görüntünün cinsi. 0 değeri YOKTUR.
+ *
+ * NOT: Çekim yolu (ISAPI / medya geçidi) HENÜZ YAZILMADI — bu enum ve
+ * `CaptureStatus` şemada hazır durur ama bugün onlara yazan bir kod yolu yok.
+ * Bkz. `docs/api-contract/11-camera.md` § Kapsam dışı.
+ */
+export const CaptureType = {
+  Snapshot: 1,
+  Clip: 2
+} as const;
+export type CaptureType = (typeof CaptureType)[keyof typeof CaptureType];
+
+export const CaptureTypeLabels: Record<CaptureType, string> = {
+  [CaptureType.Snapshot]: 'Anlık Görüntü',
+  [CaptureType.Clip]: 'Klip'
+};
+
+/**
+ * Çekimin akıbeti. 0 değeri YOKTUR.
+ *
+ * `Failed` de bir SATIR bırakır: "o anda görüntü YOK" bilgisinin kendisi delildir.
+ */
+export const CaptureStatus = {
+  Pending: 1,
+  Available: 2,
+  Failed: 3
+} as const;
+export type CaptureStatus = (typeof CaptureStatus)[keyof typeof CaptureStatus];
+
+export const CaptureStatusLabels: Record<CaptureStatus, string> = {
+  [CaptureStatus.Pending]: 'Hazırlanıyor',
+  [CaptureStatus.Available]: 'Hazır',
+  [CaptureStatus.Failed]: 'Başarısız'
+};
+
+// ─────────────────────────────────────────────────────────────
 //  Yetki
 // ─────────────────────────────────────────────────────────────
 

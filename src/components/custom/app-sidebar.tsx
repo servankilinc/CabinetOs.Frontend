@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Building2Icon,
+  CameraIcon,
   CheckIcon,
   ChevronsUpDown,
   CpuIcon,
@@ -64,7 +65,8 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { title: 'Kabinler', url: '/cabinets', icon: CpuIcon },
   { title: 'Firmalar', url: '/admin/companies', icon: Building2Icon },
-  { title: 'Şablonlar', url: '/admin/templates', icon: ShapesIcon }
+  { title: 'Şablonlar', url: '/admin/templates', icon: ShapesIcon },
+  { title: 'Kameralar', url: '/admin/cameras', icon: CameraIcon }
 ];
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
