@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { CopyIcon, PowerIcon, RotateCwIcon, TimerIcon, Trash2Icon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { CopyIcon, PowerIcon, Trash2Icon } from 'lucide-react';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -13,14 +12,11 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger
 } from '@/components/ui/context-menu';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { useSendCommand } from '@/hooks/use-device-commands';
 import { useDiagramCanvasContext } from '@/lib/diagram/canvas-context';
 import { useIsUnsaved } from '@/lib/diagram/unsaved-store';
-import type { DiagramDeviceDto, DiagramIoChannelDto } from '@/models/diagram';
-import { PULSE_DURATION_MAX_MS, PULSE_DURATION_MIN_MS, type DeviceCommandSendRequest } from '@/models/deviceCommand';
+import type { DiagramDeviceDto } from '@/models/diagram';
+import type { DeviceCommandSendRequest } from '@/models/deviceCommand';
 import { DeviceCommandType, PinDirection } from '@/models/enums';
 import { ConfirmDeleteDialog } from './confirm-delete';
 
@@ -41,13 +37,9 @@ import { ConfirmDeleteDialog } from './confirm-delete';
  * Sözleşme: `Backend/docs/api-contract/08-scada-command.md`
  */
 
-/** Parametre isteyen komutlar için açılan diyaloğun hedefi. */
-type PendingCommand = { type: typeof DeviceCommandType.PulseOutput | typeof DeviceCommandType.SetValue; channel: DiagramIoChannelDto };
-
 export function DeviceNodeMenu({ device, children }: { device: DiagramDeviceDto; children: React.ReactNode }) {
   const context = useDiagramCanvasContext();
   const send = useSendCommand(device.id);
-  const [pending, setPending] = useState<PendingCommand | null>(null);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   // Erken dönüşten ÖNCE: hook sırası koşullu olamaz.
   const isUnsaved = useIsUnsaved(device.id);
@@ -98,29 +90,9 @@ export function DeviceNodeMenu({ device, children }: { device: DiagramDeviceDto;
                     <ContextMenuItem onClick={() => dispatch({ commandType: DeviceCommandType.SetOutput, ioChannelId: channel.id, value: '0' })}>
                       Kapat
                     </ContextMenuItem>
-                    <ContextMenuSeparator />
-                    <ContextMenuItem onClick={() => setPending({ type: DeviceCommandType.PulseOutput, channel })}>
-                      <TimerIcon />
-                      Darbe ver…
-                    </ContextMenuItem>
-                    <ContextMenuItem onClick={() => setPending({ type: DeviceCommandType.SetValue, channel })}>Değer yaz…</ContextMenuItem>
                   </ContextMenuSubContent>
                 </ContextMenuSub>
               ))
-            )}
-
-            {!blocker && (
-              <>
-                {/* Modül geneli komutlar kanal hedefi ALMAZ; `ioChannelId`
-                    gönderilirse sunucu reddeder. */}
-                <ContextMenuItem onClick={() => dispatch({ commandType: DeviceCommandType.Sync })}>
-                  <RotateCwIcon />
-                  Senkronize et
-                </ContextMenuItem>
-                <ContextMenuItem variant='destructive' onClick={() => dispatch({ commandType: DeviceCommandType.Reset })}>
-                  Modülü yeniden başlat
-                </ContextMenuItem>
-              </>
             )}
           </ContextMenuGroup>
 
@@ -141,18 +113,6 @@ export function DeviceNodeMenu({ device, children }: { device: DiagramDeviceDto;
           </ContextMenuGroup>
         </ContextMenuContent>
       </ContextMenu>
-
-      {pending && (
-        <CommandParameterDialog
-          pending={pending}
-          isPending={send.isPending}
-          onCancel={() => setPending(null)}
-          onSubmit={request => {
-            setPending(null);
-            dispatch(request);
-          }}
-        />
-      )}
 
       {confirmingDelete && (
         <ConfirmDeleteDialog
@@ -186,91 +146,4 @@ function findBlocker(device: DiagramDeviceDto, scadaIsEnabled: boolean, isUnsave
   if (!scadaIsEnabled) return 'Bu kabinde SCADA kapalı; kumanda gönderilemez.';
   if (!device.externalCode) return 'Cihazın dış kodu yok — SCADA onu tanımaz. Özellikler panelinden ekleyin.';
   return null;
-}
-
-// ─────────────────────────────────────────────────── parametreli komutlar
-
-/**
- * Süre / değer isteyen komutların diyaloğu.
- *
- * Darbe süresi ve değer menü içinde alınamıyor: menü öğesi tek tıkla çalışır ve
- * bir röleyi 3 saniye mi 30 saniye mi süreceğini yanlış tıklamayla belirlemek
- * kabul edilebilir değil. Onay adımı bilinçli bir sürtünmedir.
- */
-function CommandParameterDialog({
-  pending,
-  isPending,
-  onCancel,
-  onSubmit
-}: {
-  pending: PendingCommand;
-  isPending: boolean;
-  onCancel: () => void;
-  onSubmit: (request: DeviceCommandSendRequest) => void;
-}) {
-  const isPulse = pending.type === DeviceCommandType.PulseOutput;
-  const [value, setValue] = useState(isPulse ? '1' : '');
-  const [duration, setDuration] = useState('3000');
-
-  const parsedDuration = Number(duration);
-  const durationValid = Number.isFinite(parsedDuration) && parsedDuration >= PULSE_DURATION_MIN_MS && parsedDuration <= PULSE_DURATION_MAX_MS;
-  const canSubmit = value.trim().length > 0 && (!isPulse || durationValid);
-
-  const submit = () =>
-    onSubmit(
-      isPulse
-        ? { commandType: DeviceCommandType.PulseOutput, ioChannelId: pending.channel.id, value: value.trim(), durationMs: parsedDuration }
-        : { commandType: DeviceCommandType.SetValue, ioChannelId: pending.channel.id, value: value.trim() }
-    );
-
-  return (
-    <Dialog open onOpenChange={next => !next && onCancel()}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{isPulse ? 'Darbe ver' : 'Değer yaz'}</DialogTitle>
-          <DialogDescription>
-            CH{pending.channel.channelNumber} · {pending.channel.name}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className='flex flex-col gap-3'>
-          <div className='flex flex-col gap-1.5'>
-            <Label htmlFor='command-value' className='text-xs'>
-              Değer
-            </Label>
-            {/* Değer STRING gider: kanal başına tip yok. Röle için "1", ayar
-                noktası için "250" — ikisi de aynı alandan. */}
-            <Input id='command-value' className='h-8' value={value} onChange={e => setValue(e.target.value)} autoFocus />
-          </div>
-
-          {isPulse && (
-            <div className='flex flex-col gap-1.5'>
-              <Label htmlFor='command-duration' className='text-xs'>
-                Süre (ms)
-              </Label>
-              <Input
-                id='command-duration'
-                type='number'
-                className='h-8'
-                min={PULSE_DURATION_MIN_MS}
-                max={PULSE_DURATION_MAX_MS}
-                value={duration}
-                onChange={e => setDuration(e.target.value)}
-              />
-              <p className='text-muted-foreground text-[10px]'>
-                {PULSE_DURATION_MIN_MS}–{PULSE_DURATION_MAX_MS} ms. Süreyi SCADA uygular; bizde bekleyen bir iş yoktur.
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
-          <DialogClose render={<Button variant='outline' size='sm' />}>Vazgeç</DialogClose>
-          <Button size='sm' disabled={!canSubmit || isPending} onClick={submit}>
-            Gönder
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
 }

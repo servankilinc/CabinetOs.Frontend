@@ -284,28 +284,20 @@ export const BackgroundVariantLabels: Record<BackgroundVariant, string> = {
 // ─────────────────────────────────────────────────────────────
 
 /**
- * SCADA'ya gönderilen kontrol isteğinin türü. Değerler süreksizdir: {1, 2, 10, 20, 21}. `PayloadJson`'ın hangi şemayla okunacağını belirler.
+ * SCADA'ya gönderilen kontrol isteğinin türü.
+ *
+ * **Tek değer vardır: `SetOutput = 1`.** Darbe, değer yazma, modül reset ve
+ * senkronizasyon türleri kaldırıldı; her kumanda bir çıkış kanalını hedefler ve
+ * bir değer taşır, dolayısıyla `ioChannelId` ve `value` koşulsuz zorunludur.
  */
 export const DeviceCommandType = {
-  /** Çıkışı kalıcı sürer. Payload: `{ "Value": 1 }` */
-  SetOutput: 1,
-  /** Çıkışı belirtilen süre sürüp bırakır — süreyi SCADA uygular. Payload: `{ "Value": 1, "DurationMs": 3000 }` */
-  PulseOutput: 2,
-  /** Analog/sayısal kanala değer yazar. Payload: `{ "Value": 250 }` */
-  SetValue: 10,
-  /** Modülü yeniden başlatır. Kanal hedefi yoktur (ioChannelId null). */
-  Reset: 20,
-  /** Cihaz saatini/konfigürasyonunu senkronize eder. */
-  Sync: 21
+  /** Çıkışı kalıcı sürer. Payload: `{ "value": "1" }` */
+  SetOutput: 1
 } as const;
 export type DeviceCommandType = (typeof DeviceCommandType)[keyof typeof DeviceCommandType];
 
 export const DeviceCommandTypeLabels: Record<DeviceCommandType, string> = {
-  [DeviceCommandType.SetOutput]: 'Çıkış Sür',
-  [DeviceCommandType.PulseOutput]: 'Darbe Ver',
-  [DeviceCommandType.SetValue]: 'Değer Yaz',
-  [DeviceCommandType.Reset]: 'Yeniden Başlat',
-  [DeviceCommandType.Sync]: 'Senkronize Et'
+  [DeviceCommandType.SetOutput]: 'Çıkış Sür'
 };
 
 /**

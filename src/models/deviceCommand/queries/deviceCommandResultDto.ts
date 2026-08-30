@@ -19,7 +19,7 @@ export interface DeviceCommandResultDto {
   ioChannelId: string | null;
   channelNumber: number | null;
   commandType: DeviceCommandType;
-  /** Gönderilen payload: `{"value":"1","durationMs":3000}`. */
+  /** Gönderilen payload: `{"value":"1"}`. */
   payloadJson: string | null;
   /**
    * `Sent` BU GÖVDEDE GÖRÜLMEZ: satır ancak cevap işlendikten sonra döner.
