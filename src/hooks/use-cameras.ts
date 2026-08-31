@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { createCamera, getCamerasByCabinet, updateCamera } from '@/api/camera';
+import { createCamera, getCamera, getCamerasByCabinet, updateCamera } from '@/api/camera';
 import { cameraKeys } from '@/api/query-keys';
 import type { CameraCreateRequest, CameraUpdateRequest } from '@/models/camera';
 
@@ -15,6 +15,21 @@ export function useCameras(cabinetId: string | undefined, includePassive = false
     queryKey: cameraKeys.byCabinet(cabinetId ?? '', includePassive),
     queryFn: () => getCamerasByCabinet(cabinetId!, includePassive),
     enabled: Boolean(cabinetId)
+  });
+}
+
+/**
+ * Tek bir kamera — canlı izleme detay ekranı için.
+ *
+ * Listeden türetilmiyor: detay sayfası doğrudan URL ile açılabilir ve o anda
+ * kabin listesi önbellekte olmayabilir. Ayrıca hangi kabine ait olduğunu da
+ * bilmediğimiz için hangi liste anahtarına bakacağımız belirsiz olurdu.
+ */
+export function useCamera(id: string | undefined) {
+  return useQuery({
+    queryKey: cameraKeys.detail(id ?? ''),
+    queryFn: () => getCamera(id!),
+    enabled: Boolean(id)
   });
 }
 

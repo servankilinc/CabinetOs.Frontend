@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { CameraIcon, PencilIcon, PlusIcon } from 'lucide-react';
+import { Link } from 'react-router';
+import { CameraIcon, PencilIcon, PlusIcon, VideoIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,9 +22,10 @@ import { CameraStatusBadge } from '@/components/camera/camera-status-badge';
  * `IMonitoredAsset`; ileride POS cihazı gibi başka bir izlenen tip geldiğinde
  * kendi tablosu ve kendi ekranı olacak.
  *
- * **Canlı görüntü ve anlık görüntü bu ekranda YOK** — kamerayla doğrudan
- * konuşan taraf (Hikvision ISAPI / medya geçidi) henüz yazılmadı. Ekran bugün
- * yalnızca tanım ve izleme durumu gösterir.
+ * **Canlı görüntü bu ekranda YOK** — bilinçli olarak. Tanımlamak ve izlemek
+ * ayrı işler; izleme `/cameras` altında ve o rota lazy yükleniyor, böylece
+ * WebRTC kodu bu ekranı açan kullanıcının paketine girmiyor. Karttaki "İzle"
+ * bağlantısı oraya götürür.
  */
 export default function Cameras() {
   const cabinets = useCabinets();
@@ -139,10 +141,19 @@ function CameraCard({ camera, onEdit }: { camera: CameraDto; onEdit: () => void 
 
         {camera.lastConnectionError && <p className='truncate text-xs text-destructive'>{camera.lastConnectionError}</p>}
 
-        <Button size='sm' variant='outline' onClick={onEdit}>
-          <PencilIcon />
-          Düzenle
-        </Button>
+        <div className='flex gap-2'>
+          <Button size='sm' variant='outline' onClick={onEdit} className='flex-1'>
+            <PencilIcon />
+            Düzenle
+          </Button>
+          {/* Pasif kamera izlenemez — sunucu bilet vermez. */}
+          {camera.isActive && (
+            <Button size='sm' variant='secondary' className='flex-1' render={<Link to={`/cameras/${camera.id}`} />}>
+              <VideoIcon />
+              İzle
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

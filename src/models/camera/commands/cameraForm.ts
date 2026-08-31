@@ -10,7 +10,6 @@
  * reddedilen bir değer update ile içeri girebilirdi.
  */
 import { z } from 'zod';
-import { VideoCodec } from '@/models/enums/entityEnums';
 import type { CameraDto } from '../queries/cameraDto';
 
 // Sayısal alanlarda `z.coerce.number()` KULLANILMIYOR: zod v4'te coerce girdi
@@ -61,7 +60,6 @@ export const cameraFormSchema = z
     subStreamChannel: channel('Tali akım kanalı'),
     mainStreamEnabled: z.boolean(),
     subStreamEnabled: z.boolean(),
-    videoCodec: z.union([z.literal(VideoCodec.H264), z.literal(VideoCodec.H265)]),
     snapshotChannel: channel('Anlık görüntü kanalı'),
 
     monitoringPort: optionalPort('İzleme portu'),
@@ -101,7 +99,6 @@ export const emptyCameraForm: CameraFormValues = {
   subStreamChannel: 102,
   mainStreamEnabled: true,
   subStreamEnabled: true,
-  videoCodec: VideoCodec.H264,
   snapshotChannel: 101,
   monitoringPort: null,
   pingIntervalSec: 300,
@@ -126,7 +123,6 @@ export interface CameraCreateRequest {
   subStreamChannel: number;
   mainStreamEnabled: boolean;
   subStreamEnabled: boolean;
-  videoCodec: VideoCodec;
   snapshotChannel: number;
   monitoringPort: number | null;
   pingIntervalSec: number;
@@ -159,7 +155,6 @@ export function toCreateRequest(values: CameraFormValues, cabinetId: string): Ca
     subStreamChannel: values.subStreamChannel,
     mainStreamEnabled: values.mainStreamEnabled,
     subStreamEnabled: values.subStreamEnabled,
-    videoCodec: values.videoCodec,
     snapshotChannel: values.snapshotChannel,
     monitoringPort: values.monitoringPort,
     pingIntervalSec: values.pingIntervalSec,
@@ -207,7 +202,6 @@ export function toCameraForm(camera: CameraDto): CameraFormValues {
     subStreamChannel: camera.subStreamChannel,
     mainStreamEnabled: camera.mainStreamEnabled,
     subStreamEnabled: camera.subStreamEnabled,
-    videoCodec: camera.videoCodec,
     snapshotChannel: camera.snapshotChannel,
     monitoringPort: camera.monitoringPort,
     pingIntervalSec: camera.pingIntervalSec,

@@ -327,23 +327,10 @@ export const CommandStatusLabels: Record<CommandStatus, string> = {
 //  İzleme (kamera)
 // ─────────────────────────────────────────────────────────────
 
-/**
- * Kameranın video akışında kullandığı sıkıştırma. 0 değeri YOKTUR.
- *
- * Neden alan olarak duruyor: canlı izleme WebRTC üzerinden gider ve
- * tarayıcılarda H.265 desteği yoktur. Alan, H.265'e ayarlı bir kameranın
- * sessizce transcode edilmek yerine AÇIKÇA reddedilmesini sağlar.
- */
-export const VideoCodec = {
-  H264: 1,
-  H265: 2
-} as const;
-export type VideoCodec = (typeof VideoCodec)[keyof typeof VideoCodec];
-
-export const VideoCodecLabels: Record<VideoCodec, string> = {
-  [VideoCodec.H264]: 'H.264',
-  [VideoCodec.H265]: 'H.265'
-};
+// VideoCodec KALDIRILDI. Sahada yalnızca H.264 kullanılıyor ve medya geçidinde
+// transcoding yapılmıyor; seçilecek bir şey olmadığı için ne kolon ne alan
+// kaldı. Kamera H.265 yayınlarsa tarayıcı çözemez ve görüntü siyah kalır —
+// teşhis kameranın kendi arayüzünden yapılır.
 
 /**
  * Hangi akışın izleneceği. 0 değeri YOKTUR.

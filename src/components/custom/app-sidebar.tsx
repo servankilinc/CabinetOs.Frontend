@@ -12,6 +12,7 @@ import {
   MoonIcon,
   ShapesIcon,
   SunIcon,
+  VideoIcon,
   Zap,
   type LucideIcon
 } from 'lucide-react';
@@ -64,6 +65,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { title: 'Kabinler', url: '/cabinets', icon: CpuIcon },
+  // Canlı izleme, kamera TANIMINDAN ayrı bir madde: biri izlemek, diğeri
+  // (/admin/cameras) tanımlamak için.
+  { title: 'Canlı İzleme', url: '/cameras', icon: VideoIcon },
   { title: 'Firmalar', url: '/admin/companies', icon: Building2Icon },
   { title: 'Şablonlar', url: '/admin/templates', icon: ShapesIcon },
   { title: 'Kameralar', url: '/admin/cameras', icon: CameraIcon }

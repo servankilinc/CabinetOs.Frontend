@@ -2,8 +2,6 @@
  * Ayna: CabinetOs.Model/Dtos/Camera/Queries/CameraDto.cs
  * Sözleşme: docs/api-contract/11-camera.md
  */
-import type { VideoCodec } from '@/models/enums/entityEnums';
-
 export interface CameraDto {
   id: string;
   cabinetId: string;
@@ -34,7 +32,6 @@ export interface CameraDto {
   subStreamChannel: number;
   mainStreamEnabled: boolean;
   subStreamEnabled: boolean;
-  videoCodec: VideoCodec;
   snapshotChannel: number;
 
   monitoringPort: number | null;

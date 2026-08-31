@@ -12,12 +12,11 @@ import {
 } from '@/components/ui/dialog';
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { handleFormApiError } from '@/lib/axios-helper';
 import { useCreateCamera, useUpdateCamera } from '@/hooks/use-cameras';
-import { VideoCodec, VideoCodecLabels } from '@/models/enums/entityEnums';
+
 import {
   cameraFormSchema,
   emptyCameraForm,
@@ -194,29 +193,6 @@ export function CameraFormDialog(props: Props) {
                 {errors.snapshotChannel && <FieldError>{errors.snapshotChannel.message}</FieldError>}
               </Field>
             </div>
-
-            <Field>
-              <FieldLabel htmlFor='camera-codec'>Video codec</FieldLabel>
-              <Controller
-                control={form.control}
-                name='videoCodec'
-                render={({ field }) => (
-                  <Select value={String(field.value)} onValueChange={value => field.onChange(Number(value))}>
-                    <SelectTrigger id='camera-codec'>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.values(VideoCodec).map(codec => (
-                        <SelectItem key={codec} value={String(codec)}>
-                          {VideoCodecLabels[codec]}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              <FieldDescription>Tarayıcılar H.265 çözemez; canlı izleme geldiğinde H.265 kameralar reddedilecek.</FieldDescription>
-            </Field>
 
             <div className='rounded-lg border p-3'>
               <Field orientation='horizontal'>

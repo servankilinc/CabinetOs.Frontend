@@ -76,6 +76,24 @@ const router = createBrowserRouter([
                   }
                 ]
               },
+              {
+                // Canlı izleme. Diyagramla aynı gerekçeyle LAZY ve barrel'a
+                // KONMADI: WebRTC/WHEP kodu, hiç kamera izlemeyen kullanıcının
+                // ana paketine girmemeli.
+                path: 'cameras',
+                handle: { crumb: 'Canlı İzleme' },
+                children: [
+                  {
+                    index: true,
+                    lazy: async () => ({ Component: (await import('./views/app/cameras')).default })
+                  },
+                  {
+                    path: ':cameraId',
+                    handle: { crumb: 'Kamera' },
+                    lazy: async () => ({ Component: (await import('./views/app/cameras/detail')).default })
+                  }
+                ]
+              },
               // #endregion
 
               // #region (2) Admin-Layer

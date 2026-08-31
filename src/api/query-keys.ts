@@ -33,7 +33,15 @@ export const cameraKeys = {
   /** Kabin başına liste; `includePassive` ayrı bir anahtar — iki liste farklı veri. */
   byCabinet: (cabinetId: string, includePassive: boolean) =>
     [...cameraKeys.all, 'cabinet', cabinetId, includePassive] as const,
-  detail: (id: string) => [...cameraKeys.all, 'detail', id] as const
+  detail: (id: string) => [...cameraKeys.all, 'detail', id] as const,
+  /**
+   * Bir kameranın çekim geçmişi.
+   *
+   * Bilet için anahtar YOK: bilet almak bir mutation'dır (sunucuda yol kurar,
+   * önbelleğe yazar) ve önbelleklenmesi 60 saniyelik bir sırrı yeniden
+   * kullanmaya çalışmak olurdu.
+   */
+  captures: (cameraId: string) => [...cameraKeys.all, 'captures', cameraId] as const
 };
 
 export const channelEventKeys = {
