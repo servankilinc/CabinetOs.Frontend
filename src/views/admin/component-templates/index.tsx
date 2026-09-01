@@ -12,7 +12,7 @@ import type { ComponentTemplatePaletteDto, DiagramTemplateCreateRequest, Templat
 import { diagramTemplateCreateSchema } from '@/models/diagram';
 import { useDiagramPalette } from '@/hooks/use-diagram-graph';
 import { useCreateTemplate, useUploadTemplateImage } from '@/hooks/use-component-templates';
-import { fromCssColor, readableTextColor, toCssColor } from '@/lib/diagram/colors';
+import { readableTextColor, safeCssColor } from '@/lib/diagram/colors';
 import { aspectRatio, fitToTemplate, lockedSide, readImageSize, templateImageSrc } from '@/lib/diagram/template-image';
 import { TemplatePinEditor } from './template-pin-editor';
 
@@ -71,7 +71,7 @@ function TemplateCard({ template }: { template: ComponentTemplatePaletteDto }) {
           // Kartta sablonun GERCEK en-boy orani gosteriliyor: palet ile canvas
           // arasindaki zihinsel eslesmeyi kuran sey bu.
           className='grid size-12 shrink-0 place-items-center rounded border text-[10px] font-semibold'
-          style={{ backgroundColor: toCssColor(template.backgroundColor), color: readableTextColor(template.backgroundColor) }}>
+          style={{ backgroundColor: safeCssColor(template.backgroundColor), color: readableTextColor(template.backgroundColor) }}>
           {template.pinCount}
         </div>
         <div className='min-w-0'>
@@ -107,7 +107,7 @@ const DEFAULT_DRAFT = {
   deviceTypeId: DeviceType.ControlModule as number,
   width: 200,
   height: 160,
-  backgroundColor: 0xf0f0f0,
+  backgroundColor: '#f0f0f0',
   backgroundImageUrl: null as string | null,
   pins: [] as TemplatePinDraft[]
 };
@@ -256,21 +256,16 @@ function TemplateForm({ onDone }: { onDone: () => void }) {
           ) : (
             <Field label='Renk' htmlFor='template-color'>
               <div className='flex items-center gap-2'>
-                {/* Renk sunucuda ONDALIK int; `<input type=color>` ise #rrggbb
-                    ister. Donusum tek yerde (`colors.ts`) yapiliyor.
-                    `fromCssColor` gecersiz girdide null doner — o durumda eski
-                    deger korunuyor, sessizce siyah kaydedilmiyor. */}
+                {/* Renk sunucuda da `#RRGGBB` dizesi; `<input type=color>` zaten
+                    bu bicimi uretiyor, arada donusum yok. */}
                 <Input
                   id='template-color'
                   type='color'
                   className='h-8 w-14 p-1'
-                  value={toCssColor(draft.backgroundColor)}
-                  onChange={e => {
-                    const parsed = fromCssColor(e.target.value);
-                    if (parsed != null) setDraft({ ...draft, backgroundColor: parsed });
-                  }}
+                  value={draft.backgroundColor}
+                  onChange={e => setDraft({ ...draft, backgroundColor: e.target.value })}
                 />
-                <span className='text-muted-foreground font-mono text-xs'>{toCssColor(draft.backgroundColor)}</span>
+                <span className='text-muted-foreground font-mono text-xs'>{draft.backgroundColor}</span>
               </div>
             </Field>
           )}

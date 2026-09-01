@@ -16,7 +16,7 @@ import { BackgroundVariant } from '@/models/enums';
 import type { DiagramCanvasSettingsDto, DiagramDto } from '@/models/diagram';
 import { useAppSelector } from '@/hooks';
 import type { DiagramEditor } from '@/hooks/use-diagram-editor';
-import { toCssColor } from '@/lib/diagram/colors';
+import { safeCssColor } from '@/lib/diagram/colors';
 import { readTemplateDragData } from '@/lib/diagram/dnd';
 import { AnnotationNode } from './annotation-node';
 import { OrthogonalEdge } from './orthogonal-edge';
@@ -140,5 +140,5 @@ export function DiagramCanvas({ editor, settings, devices }: DiagramCanvasProps)
 /** Minimap'te cihazlar kendi şablon renkleriyle görünsün — konumu tanımayı kolaylaştırır. */
 function miniMapColor(nodeId: string, devices: DiagramDto['devices']): string {
   const device = devices.find(d => d.id === nodeId);
-  return device ? toCssColor(device.template.backgroundColor) : '#94a3b8';
+  return device ? safeCssColor(device.template.backgroundColor) : '#94a3b8';
 }

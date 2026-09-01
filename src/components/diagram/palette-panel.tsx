@@ -5,7 +5,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnnotationShape, AnnotationShapeLabels, DeviceTypeLabels } from '@/models/enums';
 import type { ComponentTemplatePaletteDto } from '@/models/diagram';
-import { readableTextColor, toCssColor } from '@/lib/diagram/colors';
+import { readableTextColor, safeCssColor } from '@/lib/diagram/colors';
 import { setTemplateDragData } from '@/lib/diagram/dnd';
 import { useDiagramPalette } from '@/hooks/use-diagram-graph';
 
@@ -94,7 +94,7 @@ function PaletteCard({ template }: { template: ComponentTemplatePaletteDto }) {
         // arasindaki zihinsel esleşmeyi kuruyor.
         className='grid size-8 shrink-0 place-items-center rounded border text-[9px] font-semibold'
         style={{
-          backgroundColor: toCssColor(template.backgroundColor),
+          backgroundColor: safeCssColor(template.backgroundColor),
           color: readableTextColor(template.backgroundColor)
         }}>
         {template.pinCount}

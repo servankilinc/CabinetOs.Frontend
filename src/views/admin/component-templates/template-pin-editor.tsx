@@ -15,7 +15,7 @@ import {
   VoltageLevelLabels
 } from '@/models/enums';
 import type { TemplatePinDraft } from '@/models/diagram';
-import { readableTextColor, toCssColor } from '@/lib/diagram/colors';
+import { readableTextColor, safeCssColor } from '@/lib/diagram/colors';
 import { pinPlacementStyle, snapToEdge } from '@/lib/diagram/pin-side';
 import { templateImageSrc } from '@/lib/diagram/template-image';
 import { cn } from '@/lib/utils';
@@ -93,7 +93,7 @@ const PREVIEW_VIEWPORT_MAX_HEIGHT = 520;
 interface TemplatePinEditorProps {
   width: number;
   height: number;
-  backgroundColor: number;
+  backgroundColor: string;
   backgroundImageUrl: string | null;
   pins: TemplatePinDraft[];
   selectedIndex: number | null;
@@ -250,7 +250,7 @@ export function TemplatePinEditor({
             style={{
               width: previewWidth,
               height: previewHeight,
-              backgroundColor: toCssColor(backgroundColor),
+              backgroundColor: safeCssColor(backgroundColor),
               color: readableTextColor(backgroundColor)
             }}>
             {imageSrc ? (

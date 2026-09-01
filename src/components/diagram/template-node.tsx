@@ -1,7 +1,7 @@
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { DeviceStatus, DeviceTypeLabels, HandleSide } from '@/models/enums';
 import type { DiagramPinDto } from '@/models/diagram';
-import { readableTextColor, toCssColor } from '@/lib/diagram/colors';
+import { readableTextColor, safeCssColor } from '@/lib/diagram/colors';
 import { useLiveChannel, useLiveDevice } from '@/lib/diagram/live-store';
 import { SIDE_TO_POSITION, pinPlacementStyle } from '@/lib/diagram/pin-side';
 import { templateImageSrc } from '@/lib/diagram/template-image';
@@ -27,7 +27,7 @@ import { DeviceNodeMenu } from './node-menu';
  */
 export function TemplateNode({ data, selected }: NodeProps<DeviceNode>) {
   const { device } = data;
-  const background = toCssColor(device.template.backgroundColor);
+  const background = safeCssColor(device.template.backgroundColor);
   const foreground = readableTextColor(device.template.backgroundColor);
   const imageSrc = templateImageSrc(device.template.backgroundImageUrl);
 

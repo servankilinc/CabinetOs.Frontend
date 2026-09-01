@@ -12,8 +12,8 @@ export interface ComponentTemplatePaletteDto {
   isSystemTemplate: boolean;
   width: number;
   height: number;
-  /** 0xRRGGBB TAMSAYISI — renk dizesi değil. */
-  backgroundColor: number;
+  /** `#RRGGBB` renk dizesi. */
+  backgroundColor: string;
   backgroundImageUrl: string | null;
   /** Kartta "10 pin" rozeti için; pinlerin kendisi gönderilmez. */
   pinCount: number;

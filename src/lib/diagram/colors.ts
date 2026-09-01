@@ -1,49 +1,24 @@
 /**
- * Renk dönüşümleri.
+ * Renk yardımcıları.
  *
- * İki farklı renk temsili var ve karıştırılmamalı:
- *   - `ComponentTemplate.backgroundColor`  → **int** (0xRRGGBB)
- *   - `Connection.color`, annotation renkleri → **CSS dizesi** ("#EF4444")
- *
- * Şablon rengi int'tir çünkü palet yazarlığı sayısal renk seçicisiyle yapılır ve
- * DB'de kolon `int`'tir; yeni renk eklemek migration gerektirmez.
+ * Sistemdeki TÜM renkler `#RRGGBB` dizesidir — şablon zemini, bağlantı rengi,
+ * annotation renkleri, tual zemini ve ızgara. Şablon rengi eskiden 0xRRGGBB
+ * tamsayısıydı; tek istisna olduğu ve "0 = siyah" ile "0 = boş"u ayırt
+ * edemediği için (ROADMAP B4) dizeye çevrildi. Dönüşüm fonksiyonlarına artık
+ * gerek yok.
  */
 
-const MAX_RGB = 0xffffff;
+const HEX_COLOR = /^#[0-9a-f]{6}$/i;
 
 /**
- * 0xRRGGBB tamsayısını CSS hex dizesine çevirir. 15790320 → "#f0f0f0".
+ * Sunucudan gelen rengi CSS'e basmadan önce doğrular.
  *
- * Aralık dışı ve NaN değerler siyaha kırpılır: bozuk tek bir şablon kaydı
+ * Geçersiz ve boş değerler siyaha düşürülür: bozuk tek bir şablon kaydı
  * yüzünden `undefined` bir CSS değeri üretip node'u görünmez kılmaktansa,
  * yanlış ama görünür bir renk basmak yeğdir.
  */
-export function toCssColor(value: number): string {
-  if (!Number.isFinite(value)) return '#000000';
-  const clamped = Math.min(Math.max(Math.trunc(value), 0), MAX_RGB);
-  return `#${clamped.toString(16).padStart(6, '0')}`;
-}
-
-/**
- * CSS hex dizesini 0xRRGGBB tamsayısına çevirir — palet yazarlığında (D3) form
- * girdisini sunucunun beklediği int'e çevirmek için.
- * Kısa biçim ("#abc") genişletilir. Geçersiz girdide `null` döner ki çağıran
- * sessizce 0 (siyah) kaydetmesin.
- */
-export function fromCssColor(css: string): number | null {
-  const match = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(css.trim());
-  if (!match?.[1]) return null;
-
-  const hex = match[1];
-  const full =
-    hex.length === 3
-      ? hex
-          .split('')
-          .map(c => c + c)
-          .join('')
-      : hex;
-
-  return Number.parseInt(full, 16);
+export function safeCssColor(value: string | null | undefined): string {
+  return value != null && HEX_COLOR.test(value.trim()) ? value.trim() : '#000000';
 }
 
 /**
@@ -54,9 +29,9 @@ export function fromCssColor(css: string): number | null {
  * W3C'nin göreli parlaklık eşiği yerine basit YIQ kullanılır: renkler zaten
  * kullanıcı seçimi, kontrast denetimi değil okunabilirlik hedefleniyor.
  */
-export function readableTextColor(backgroundColor: number): string {
-  if (!Number.isFinite(backgroundColor)) return '#0f172a';
-  const value = Math.min(Math.max(Math.trunc(backgroundColor), 0), MAX_RGB);
+export function readableTextColor(backgroundColor: string | null | undefined): string {
+  const hex = safeCssColor(backgroundColor).slice(1);
+  const value = Number.parseInt(hex, 16);
   const r = (value >> 16) & 0xff;
   const g = (value >> 8) & 0xff;
   const b = value & 0xff;

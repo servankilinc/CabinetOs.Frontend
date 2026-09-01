@@ -14,7 +14,7 @@ export interface DiagramTemplateDto {
   deviceTypeId: DeviceType;
   width: number;
   height: number;
-  /** 0xRRGGBB TAMSAYISI — renk dizesi değil. `toCssColor()` ile çevrilir. */
-  backgroundColor: number;
+  /** `#RRGGBB` renk dizesi. */
+  backgroundColor: string;
   backgroundImageUrl: string | null;
 }

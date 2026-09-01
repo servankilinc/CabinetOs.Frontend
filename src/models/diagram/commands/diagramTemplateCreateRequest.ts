@@ -75,8 +75,7 @@ export const diagramTemplateCreateSchema = z
     deviceTypeId: z.number().int(),
     width: z.number().gt(0, 'Genişlik sıfırdan büyük olmalı'),
     height: z.number().gt(0, 'Yükseklik sıfırdan büyük olmalı'),
-    // ONDALIK int, hex dize DEĞİL — 0xFFFFFF = 16777215.
-    backgroundColor: z.number().int().min(0, 'Arka plan rengi geçersiz').max(0xffffff, 'Arka plan rengi geçersiz'),
+    backgroundColor: z.string().regex(/^#[0-9A-Fa-f]{6}$/, 'Arka plan rengi #RRGGBB biçiminde olmalı'),
     backgroundImageUrl: z.string().nullable(),
     // Boş bırakılabilir: pano çerçevesi gibi dekoratif bir şablonun pini olmayabilir.
     pins: z.array(templatePinDraftSchema).max(TEMPLATE_MAX_PINS, `Bir şablonda en fazla ${TEMPLATE_MAX_PINS} pin olabilir`)
