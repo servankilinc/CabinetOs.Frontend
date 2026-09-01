@@ -1,7 +1,7 @@
 // Queries — sunucu çıktısı, saf interface
 export type { CameraDto } from './queries/cameraDto';
 export type { CameraCaptureDto } from './queries/cameraCaptureDto';
-export type { StreamTicketDto } from './queries/streamTicketDto';
+export type { StreamTokenDto } from './queries/streamTokenDto';
 
 // Commands — C# DTO aynaları, saf interface
 export type { CameraProbeResultRequest } from './commands/cameraProbeResultRequest';

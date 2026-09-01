@@ -1,7 +1,7 @@
 import http, { API_BASE_URL } from '@/lib/axios-helper';
 import type { CameraCaptureCreateRequest } from '@/models/camera/commands/cameraCaptureCreateRequest';
 import type { CameraCaptureDto } from '@/models/camera/queries/cameraCaptureDto';
-import type { StreamTicketDto } from '@/models/camera/queries/streamTicketDto';
+import type { StreamTokenDto } from '@/models/camera/queries/streamTokenDto';
 import type { StreamProfile } from '@/models/enums/entityEnums';
 
 const CAMERA_ROUTE = '/api/Camera';
@@ -14,8 +14,8 @@ const CAMERA_ROUTE = '/api/Camera';
  *
  * Dönen gövdede RTSP adresi ya da kamera parolası YOKTUR ve olmayacaktır.
  */
-export async function createStreamTicket(cameraId: string, profile: StreamProfile): Promise<StreamTicketDto> {
-  return http.post<StreamTicketDto>(`${CAMERA_ROUTE}/${cameraId}/stream-ticket?profile=${profile}`, undefined);
+export async function createStreamTicket(cameraId: string, profile: StreamProfile): Promise<StreamTokenDto> {
+  return http.post<StreamTokenDto>(`${CAMERA_ROUTE}/${cameraId}/stream-ticket?profile=${profile}`, undefined);
 }
 
 /**
@@ -51,11 +51,11 @@ export async function getCaptures(cameraId: string, take = 20): Promise<CameraCa
 }
 
 /**
- * `storageKey`'i tarayıcının açabileceği tam adrese çevirir.
+ * `relativePath`'i tarayıcının açabileceği tam adrese çevirir.
  *
  * Sunucu göreli yol döner (depo taşındığında binlerce satır güncellenmesin
  * diye); kökü birleştirmek istemcinin işi.
  */
-export function captureFileUrl(storageKey: string): string {
-  return `${API_BASE_URL.replace(/\/$/, '')}/${storageKey.replace(/^\//, '')}`;
+export function captureFileUrl(relativePath: string): string {
+  return `${API_BASE_URL.replace(/\/$/, '')}/${relativePath.replace(/^\//, '')}`;
 }

@@ -98,10 +98,10 @@ export function startStreamSession({ cameraId, profile, videoEl, onState }: Star
       if (disposed) return;
       onState('connecting');
 
-      const ticket = await createStreamTicket(cameraId, profile);
+      const streamToken = await createStreamTicket(cameraId, profile);
       if (disposed) return;
 
-      session = await whepConnect(ticket.whepUrl, ticket.ticket, videoEl, state => {
+      session = await whepConnect(streamToken.whepUrl, streamToken.token, videoEl, state => {
         if (disposed) return;
 
         if (state === 'connected') {

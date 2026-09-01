@@ -76,11 +76,11 @@ function CaptureRow({ capture }: { capture: CameraCaptureDto }) {
         )}
       </div>
 
-      {capture.status === CaptureStatus.Available && capture.storageKey && (
+      {capture.status === CaptureStatus.Available && capture.relativePath && (
         <Button
           size='sm'
           variant='outline'
-          render={<a href={captureFileUrl(capture.storageKey)} target='_blank' rel='noreferrer' />}
+          render={<a href={captureFileUrl(capture.relativePath)} target='_blank' rel='noreferrer' />}
         >
           <DownloadIcon />
           Aç

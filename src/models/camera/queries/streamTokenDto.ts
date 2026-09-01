@@ -1,8 +1,8 @@
 /**
- * Ayna: CabinetOs.Model/Dtos/Camera/Queries/StreamTicketDto.cs
+ * Ayna: CabinetOs.Model/Dtos/Camera/Queries/StreamTokenDto.cs
  * Sözleşme: docs/api-contract/11-camera.md
  */
-export interface StreamTicketDto {
+export interface StreamTokenDto {
   /**
    * Tarayıcının SDP teklifini göndereceği WHEP adresi.
    *
@@ -13,12 +13,12 @@ export interface StreamTicketDto {
   whepUrl: string;
 
   /**
-   * Opak bilet. `Authorization: Basic base64("ticket:" + ticket)` olarak
-   * gönderilir.
+   * Opak bilet. `Authorization: Basic base64("ticket:" + token)` olarak
+   * gönderilir — kullanıcı adı kısmı sabit `ticket` dizesidir, alanın adı değil.
    *
    * Yola bağlıdır: A kamerası için alınan bilet B'nin adresinde çalışmaz.
    */
-  ticket: string;
+  token: string;
 
   /**
    * Biletin son geçerlilik anı (ISO-8601 UTC).
@@ -26,5 +26,5 @@ export interface StreamTicketDto {
    * Bağlantı koptuğunda eski bilet SAKLANMAZ; yeniden bağlanma her denemede
    * yenisini ister (bkz. `lib/camera/stream-session.ts`).
    */
-  expiresAt: string;
+  expirationUtc: string;
 }

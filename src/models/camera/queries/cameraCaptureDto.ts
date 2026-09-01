@@ -28,7 +28,7 @@ export interface CameraCaptureDto {
    * Tam URL DEĞİLDİR — `captureFileUrl()` ile `API_BASE_URL`'e eklenir.
    * `Pending` ve `Failed` iken `null`.
    */
-  storageKey: string | null;
+  relativePath: string | null;
 
   sizeBytes: number | null;
 
