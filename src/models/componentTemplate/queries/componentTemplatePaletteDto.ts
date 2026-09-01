@@ -1,9 +1,9 @@
-/** Ayna: CabinetOs.Model/Dtos/Diagram/Queries/ComponentTemplatePaletteDto.cs — sözleşme: docs/api-contract/02-diagram-read.md */
+/** Ayna: CabinetOs.Model/Dtos/ComponentTemplate/Queries/ComponentTemplatePaletteDto.cs — sözleşme: docs/api-contract/10-component-template.md */
 import type { DeviceType } from '@/models/enums';
 
 /**
  * Paletteki (stencil kütüphanesi) tek bir şablon kartı.
- * `GET /api/Diagram/palette` bunların listesini döner; yalnızca aktif şablonlar.
+ * `GET /api/ComponentTemplate/palette` bunların listesini döner; yalnızca aktif şablonlar.
  */
 export interface ComponentTemplatePaletteDto {
   id: string;

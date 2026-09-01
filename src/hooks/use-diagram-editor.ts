@@ -23,9 +23,9 @@ import { toAnnotationNode, toDeviceNode, toRfNodes, type DiagramNode } from '@/l
 import { toRfEdges } from '@/lib/diagram/to-rf-edges';
 import { AnnotationShape, EdgeRouting, LineStyle, WireType } from '@/models/enums';
 import { newId } from '@/lib/sequential-id';
+import type { ComponentTemplatePaletteDto } from '@/models/componentTemplate';
 import {
   isSaveRequestEmpty,
-  type ComponentTemplatePaletteDto,
   type DiagramAnnotationItemDto,
   type DiagramConnectionDto,
   type DiagramDeviceDto,

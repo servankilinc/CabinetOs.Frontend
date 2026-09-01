@@ -14,7 +14,7 @@ import {
   VoltageLevel,
   VoltageLevelLabels
 } from '@/models/enums';
-import type { TemplatePinDraft } from '@/models/diagram';
+import type { TemplatePinDraft } from '@/models/componentTemplate';
 import { readableTextColor, safeCssColor } from '@/lib/diagram/colors';
 import { pinPlacementStyle, snapToEdge } from '@/lib/diagram/pin-side';
 import { templateImageSrc } from '@/lib/diagram/template-image';

@@ -1,23 +1,19 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { createDiagramTemplate, uploadTemplateImage } from '@/api/diagram';
-import { diagramKeys } from '@/api/query-keys';
+import { createComponentTemplate, getPalette, uploadTemplateImage } from '@/api/component-template';
+import { componentTemplateKeys } from '@/api/query-keys';
 import { toApiError } from '@/lib/axios-helper';
-import type { DiagramTemplateCreateRequest } from '@/models/diagram';
+import type { ComponentTemplateCreateRequest } from '@/models/componentTemplate';
 
-/**
- * Yeni palet şablonu yazar (şablon + pinler tek transaction).
- *
- * Sözleşme: `Backend/docs/api-contract/10-diagram-template.md`
- *
- * Başarıda palet **invalidate** edilir — `setQueryData` DEĞİL. Canvas ayarlarının
- * aksine sunucu burada yalnızca `{ id }` dönüyor; palet kartının ihtiyaç duyduğu
- * `pinCount`, `deviceTypeId` ve renk sunucudan gelmediği için cache'i yerinde
- * güncellemek uydurma veri yazmak olurdu.
- *
- * Bu invalidation güvenli: palet ayrı bir anahtarda duruyor ve diyagram grafına
- * dokunmuyor, yani kaydedilmemiş bir düzenlemeyi ezme riski yok.
- */
+/** Uzun `staleTime`: palet her kabinette aynıdır ve yalnızca şablon yazarlığı değiştirir. */
+export function useComponentTemplatePalette() {
+  return useQuery({
+    queryKey: componentTemplateKeys.palette(),
+    queryFn: getPalette,
+    staleTime: 30 * 60 * 1000
+  });
+}
+
 /**
  * Şablon arka plan görselini yükler.
  *
@@ -35,13 +31,26 @@ export function useUploadTemplateImage() {
   });
 }
 
+/**
+ * Yeni palet şablonu yazar (şablon + pinler tek transaction).
+ *
+ * Sözleşme: `docs/api-contract/10-component-template.md`
+ *
+ * Başarıda palet **invalidate** edilir — `setQueryData` DEĞİL. Canvas ayarlarının
+ * aksine sunucu burada yalnızca `{ id }` dönüyor; palet kartının ihtiyaç duyduğu
+ * `pinCount`, `deviceTypeId` ve renk sunucudan gelmediği için cache'i yerinde
+ * güncellemek uydurma veri yazmak olurdu.
+ *
+ * Bu invalidation güvenli: palet ayrı bir anahtarda duruyor ve diyagram grafına
+ * dokunmuyor, yani kaydedilmemiş bir düzenlemeyi ezme riski yok.
+ */
 export function useCreateTemplate() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (request: DiagramTemplateCreateRequest) => createDiagramTemplate(request),
+    mutationFn: (request: ComponentTemplateCreateRequest) => createComponentTemplate(request),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: diagramKeys.palette() });
+      void queryClient.invalidateQueries({ queryKey: componentTemplateKeys.palette() });
       toast.success('Şablon oluşturuldu.');
     },
     onError: error => {

@@ -8,7 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Switch } from '@/components/ui/switch';
 import { BackgroundVariant, BackgroundVariantLabels, DeviceStatus, DeviceStatusLabels } from '@/models/enums';
 import type { DiagramCabinetDto, DiagramCanvasSettingsDto } from '@/models/diagram';
-import { canvasSettingsUpsertSchema } from '@/models/diagram';
+import { canvasSettingsUpsertSchema } from '@/models/canvasSettings';
 import { useAppDispatch, useAppSelector } from '@/hooks';
 import { useCanvasSettings } from '@/hooks/use-canvas-settings';
 import type { SaveController } from '@/hooks/use-diagram-save';

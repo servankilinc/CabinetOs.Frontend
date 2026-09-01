@@ -1,4 +1,4 @@
-/** Ayna: CabinetOs.Model/Dtos/Diagram/Queries/TemplateImageDto.cs — sözleşme: docs/api-contract/10-diagram-template.md */
+/** Ayna: CabinetOs.Model/Dtos/ComponentTemplate/Queries/TemplateImageDto.cs — sözleşme: docs/api-contract/10-component-template.md */
 
 /**
  * Yüklenen şablon görselinin sonucu.

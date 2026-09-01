@@ -4,10 +4,10 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AnnotationShape, AnnotationShapeLabels, DeviceTypeLabels } from '@/models/enums';
-import type { ComponentTemplatePaletteDto } from '@/models/diagram';
+import type { ComponentTemplatePaletteDto } from '@/models/componentTemplate';
 import { readableTextColor, safeCssColor } from '@/lib/diagram/colors';
 import { setTemplateDragData } from '@/lib/diagram/dnd';
-import { useDiagramPalette } from '@/hooks/use-diagram-graph';
+import { useComponentTemplatePalette } from '@/hooks/use-component-templates';
 
 /**
  * Stencil kütüphanesi + not araçları.
@@ -17,7 +17,7 @@ import { useDiagramPalette } from '@/hooks/use-diagram-graph';
  * olmadan cihazın nereye konacağı belirsiz olurdu.
  */
 export function PalettePanel({ onAddAnnotation }: { onAddAnnotation: (shape: AnnotationShape) => void }) {
-  const { data, isPending, isError, error } = useDiagramPalette();
+  const { data, isPending, isError, error } = useComponentTemplatePalette();
 
   return (
     <aside className='bg-sidebar flex w-56 shrink-0 flex-col border-r'>

@@ -1,13 +1,3 @@
-// Commands — kullanici girdisi, zod ile dogrulanir
-export { canvasSettingsUpsertSchema, type CanvasSettingsUpsertRequest } from './commands/canvasSettingsUpsertRequest';
-export {
-  TEMPLATE_MAX_PINS,
-  diagramTemplateCreateSchema,
-  templatePinDraftSchema,
-  type DiagramTemplateCreateRequest,
-  type TemplatePinDraft
-} from './commands/diagramTemplateCreateRequest';
-
 // Bulk save gövdesi: zod YOK — makine tarafından üretilir, bkz. dosyanın başlığı.
 export {
   emptyDelta,
@@ -31,6 +21,4 @@ export type { DiagramIoChannelDto } from './queries/diagramIoChannelDto';
 export type { DiagramConnectionDto } from './queries/diagramConnectionDto';
 export type { DiagramAnnotationItemDto } from './queries/diagramAnnotationItemDto';
 export type { DiagramCanvasSettingsDto } from './queries/diagramCanvasSettingsDto';
-export type { ComponentTemplatePaletteDto } from './queries/componentTemplatePaletteDto';
-export type { TemplateImageDto } from './queries/templateImageDto';
 export type { DiagramSaveResponse } from './queries/diagramSaveResponse';

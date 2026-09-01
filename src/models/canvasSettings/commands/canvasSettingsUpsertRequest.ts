@@ -1,4 +1,4 @@
-/** Ayna: CabinetOs.Model/Dtos/Diagram/Commands/CanvasSettingsUpsertDto.cs — sözleşme: docs/api-contract/02-diagram-read.md */
+/** Ayna: CabinetOs.Model/Dtos/CanvasSettings/Commands/CanvasSettingsUpsertDto.cs — sözleşme: docs/api-contract/13-canvas-settings.md */
 import { z } from 'zod';
 import { BackgroundVariant } from '@/models/enums';
 

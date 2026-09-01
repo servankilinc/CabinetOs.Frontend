@@ -1,21 +1,21 @@
-/** Ayna: CabinetOs.Model/Dtos/Diagram/Commands/DiagramTemplateCreateRequest.cs — sözleşme: docs/api-contract/10-diagram-template.md */
+/** Ayna: CabinetOs.Model/Dtos/ComponentTemplate/Commands/ComponentTemplateCreateRequest.cs — sözleşme: docs/api-contract/10-component-template.md */
 import { z } from 'zod';
 import { HandleSide, PinDirection, PinFunction, VoltageLevel } from '@/models/enums';
 
 /**
- * `POST /api/Diagram/template` gövdesi — şablon + pinler tek transaction'da.
+ * `POST /api/ComponentTemplate` gövdesi — şablon + pinler tek transaction'da.
  *
  * **Pin taslakları `componentTemplateId` TAŞIMAZ.** Bu ucun bütün varlık sebebi
- * o: `ComponentTemplatePinCreateDto` zorunlu bir şablon Id'si istiyor, ama şablon
- * henüz oluşmadığı için yazılabilecek bir değer yok. Sunucu commit'ten önce
- * kendisi bağlar.
+ * o: pinlerin FK'si için gerçek bir şablon Id'si gerekiyor, ama şablon henüz
+ * oluşmadığı için yazılabilecek bir değer yok. Sunucu commit'ten önce kendisi
+ * bağlar.
  *
  * Sınırlar backend validator'ıyla birebir aynı tutulmalıdır; burada gevşek
  * bırakılırsa kullanıcı formu geçer ama sunucudan 400 alır — üstelik bu uçta
  * 400, bütün şablonun kaybolması demek.
  */
 
-/** Sunucudaki `DiagramTemplateCreateRequestValidator.MaxPins` ile aynı. */
+/** Sunucudaki `ComponentTemplateCreateRequestValidator.MaxPins` ile aynı. */
 export const TEMPLATE_MAX_PINS = 256;
 
 /** Sayısal enum değerlerinden zod birleşimi üretir — `as const` enum aynalarımız için. */
@@ -69,7 +69,7 @@ export const templatePinDraftSchema = z.object({
   voltageLevel: enumValue(VOLTAGE_LEVELS).nullable()
 });
 
-export const diagramTemplateCreateSchema = z
+export const componentTemplateCreateSchema = z
   .object({
     name: z.string().trim().min(2, 'Şablon adı en az 2 karakter içermeli'),
     deviceTypeId: z.number().int(),
@@ -89,4 +89,4 @@ export const diagramTemplateCreateSchema = z
   });
 
 export type TemplatePinDraft = z.infer<typeof templatePinDraftSchema>;
-export type DiagramTemplateCreateRequest = z.infer<typeof diagramTemplateCreateSchema>;
+export type ComponentTemplateCreateRequest = z.infer<typeof componentTemplateCreateSchema>;

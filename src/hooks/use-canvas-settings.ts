@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { upsertCanvasSettings } from '@/api/diagram';
+import { upsertCanvasSettings } from '@/api/canvas-settings';
 import { diagramKeys } from '@/api/query-keys';
 import { toApiError } from '@/lib/axios-helper';
-import type { CanvasSettingsUpsertRequest, DiagramDto } from '@/models/diagram';
+import type { CanvasSettingsUpsertRequest } from '@/models/canvasSettings';
+import type { DiagramDto } from '@/models/diagram';
 
 /**
  * Canvas ayarlarını yazar.

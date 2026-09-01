@@ -1,4 +1,4 @@
-import type { ComponentTemplatePaletteDto } from '@/models/diagram';
+import type { ComponentTemplatePaletteDto } from '@/models/componentTemplate';
 
 /**
  * Paletten canvas'a sürükle-bırak sözleşmesi.

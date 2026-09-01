@@ -8,10 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DeviceType, DeviceTypeLabels } from '@/models/enums';
-import type { ComponentTemplatePaletteDto, DiagramTemplateCreateRequest, TemplatePinDraft } from '@/models/diagram';
-import { diagramTemplateCreateSchema } from '@/models/diagram';
-import { useDiagramPalette } from '@/hooks/use-diagram-graph';
-import { useCreateTemplate, useUploadTemplateImage } from '@/hooks/use-component-templates';
+import type { ComponentTemplateCreateRequest, ComponentTemplatePaletteDto, TemplatePinDraft } from '@/models/componentTemplate';
+import { componentTemplateCreateSchema } from '@/models/componentTemplate';
+import { useComponentTemplatePalette, useCreateTemplate, useUploadTemplateImage } from '@/hooks/use-component-templates';
 import { readableTextColor, safeCssColor } from '@/lib/diagram/colors';
 import { aspectRatio, fitToTemplate, lockedSide, readImageSize, templateImageSrc } from '@/lib/diagram/template-image';
 import { TemplatePinEditor } from './template-pin-editor';
@@ -19,15 +18,15 @@ import { TemplatePinEditor } from './template-pin-editor';
 /**
  * Palet yazarlığı — şablon listesi + yeni şablon formu.
  *
- * Şablon ve pinleri TEK istekte gider (`POST /api/Diagram/template`). Generic
+ * Şablon ve pinleri TEK istekte gider (`POST /api/ComponentTemplate`). Generic
  * CRUD ile yazmak mümkün değildi: pin eklemek şablonun önce var olmasını
  * gerektiriyor ve ikinci adım yarıda kalırsa geriye pinsiz — dolayısıyla kablo
  * bağlanamayan — bir şablon kalırdı.
  *
- * Sözleşme: `Backend/docs/api-contract/10-diagram-template.md`
+ * Sözleşme: `docs/api-contract/10-component-template.md`
  */
 export default function ComponentTemplates() {
-  const { data, isPending, isError, error } = useDiagramPalette();
+  const { data, isPending, isError, error } = useComponentTemplatePalette();
   const [isCreating, setIsCreating] = useState(false);
 
   return (
@@ -180,14 +179,14 @@ function TemplateForm({ onDone }: { onDone: () => void }) {
     // Zod sinirlari sunucu validator'iyla birebir. Burada yakalamak, sunucuya
     // gidip 400 ile donmekten hizli — ve bu ucta 400 demek gonderinin TAMAMININ
     // (pinler dahil) reddedilmesi demek.
-    const parsed = diagramTemplateCreateSchema.safeParse(draft);
+    const parsed = componentTemplateCreateSchema.safeParse(draft);
     if (!parsed.success) {
       setIssue(parsed.error.issues[0]?.message ?? 'Geçersiz şablon');
       return;
     }
 
     setIssue(null);
-    mutation.mutate(parsed.data as DiagramTemplateCreateRequest, {
+    mutation.mutate(parsed.data as ComponentTemplateCreateRequest, {
       onSuccess: () => {
         setDraft(DEFAULT_DRAFT);
         setSelectedPin(null);
