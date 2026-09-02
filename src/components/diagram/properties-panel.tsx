@@ -211,7 +211,9 @@ function DeviceForm({ node, editor }: { node: Extract<DiagramNode, { type: 'temp
         <ReadOnly term='Şablon' value={device.template.name} />
         <ReadOnly term='Tip' value={DeviceTypeLabels[device.template.deviceTypeId]} />
         <ReadOnly term='Boyut' value={`${device.template.width} × ${device.template.height}`} />
-        <ReadOnly term='Pin' value={device.pins.length === 0 ? 'kaydedince üretilir' : String(device.pins.length)} />
+        {/* Sıfır artık "henüz üretilmedi" demek DEĞİL: pinler cihaz bırakılır
+            bırakılmaz doğuyor, dolayısıyla sıfır gerçekten pinsiz bir şablondur. */}
+        <ReadOnly term='Pin' value={String(device.pins.length)} />
         {/* null = hiç telemetri alınmadı; Offline ile AYNI ŞEY DEĞİL. */}
         <ReadOnly term='Durum' value={statusId == null ? 'Telemetri yok' : DeviceStatusLabels[statusId]} />
         {lastSeen && <ReadOnly term='Son görülme' value={new Date(lastSeen).toLocaleTimeString('tr-TR')} />}

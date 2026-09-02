@@ -24,11 +24,34 @@ import type { PointDto } from '../queries/pointDto';
 export interface EntityDelta<T> {
   upserted: T[];
   /**
-   * Karşılığı bulunamayan Id'ler sunucuda SESSİZCE ATLANIR (`skippedDeleteCount`).
-   * Bu yüzden buraya hiç kaydedilmemiş bir kaydın Id'si düşse bile gönderi
-   * bozulmaz.
+   * Karşılığı bulunamayan Id'ler sunucuda SESSİZCE ATLANIR; 400 dönmez ve yanıtta
+   * da raporlanmaz. Bu yüzden buraya hiç kaydedilmemiş bir kaydın Id'si düşse bile
+   * gönderi bozulmaz.
    */
   deleted: string[];
+}
+
+/**
+ * Yeni bir cihazın TEK bir pini için istemcinin ürettiği kimlik.
+ *
+ * Pin VERİSİ taşımaz: ad, konum, fonksiyon, yön ve gerilim sunucuda
+ * `ComponentTemplatePin`'den kopyalanır. Gönderilen `componentTemplatePinId`
+ * kümesi şablonun pin şemasına BİREBİR eşit olmalıdır, aksi hâlde 400.
+ */
+export interface DevicePinDraft {
+  id: string;
+  componentTemplatePinId: string;
+}
+
+/**
+ * Yeni bir cihazın TEK bir telemetri kanalı için istemcinin ürettiği kimlik.
+ *
+ * Pinin içine gömülü DEĞİL: "aynı cihazda aynı kanal numarası tek bir kanaldır"
+ * kuralı böyle yapısal olarak tutarsız ifade edilemez hâle gelir.
+ */
+export interface DeviceIoChannelDraft {
+  id: string;
+  channelNumber: number;
 }
 
 export interface DeviceDraft {
@@ -46,15 +69,25 @@ export interface DeviceDraft {
   isLocked: boolean;
   isVisible: boolean;
   externalCode: string | null;
+  /**
+   * Yalnızca OLUŞTURMADA doldurulur; mevcut bir cihazda dolu gönderilirse 400
+   * (pinleri zaten var). "Bu cihaz yeni mi" sorusunu `lib/diagram/unsaved-store.ts`
+   * cevaplar — Id'nin kendisi cevaplayamaz.
+   */
+  pins: DevicePinDraft[];
+  /** Ad okuma yolundaki `DiagramDeviceDto.ioChannels` ile AYNI: aynı liste okunup geri gönderiliyor. */
+  ioChannels: DeviceIoChannelDraft[];
 }
 
 export interface ConnectionDraft {
   id: string;
   /**
-   * Uçlar her zaman KALICI pin Id'sidir ve mevcut bir kabloda DEĞİŞTİRİLEMEZ
-   * (farklı gönderilirse 400). Bir kablonun ucunu taşımak sil + oluştur'dur.
+   * Uçlar mevcut bir kabloda DEĞİŞTİRİLEMEZ (farklı gönderilirse 400); bir
+   * kablonun ucunu taşımak sil + oluştur'dur.
    *
-   * Pinler yalnızca sunucuda, cihaz oluşturulurken şablondan üretilir.
+   * Uç, kalıcı bir pini de AYNI GÖNDERİDE doğacak bir pini de gösterebilir —
+   * pin Id'lerini istemci ürettiği için cihaz bırakılıp ona aynı kaydetmede kablo
+   * çizilebiliyor.
    */
   sourcePinId: string;
   targetPinId: string;

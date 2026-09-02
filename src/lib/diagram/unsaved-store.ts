@@ -54,6 +54,18 @@ export function resetUnsaved(): void {
   emit();
 }
 
+/**
+ * Tepkisel OLMAYAN okuma — render dışından soranlar için.
+ *
+ * Gönderi gövdesi kurulurken kullanılır: pin ve kanal kimlikleri yalnızca YENİ
+ * cihazlarda gider (mevcut bir cihaza gönderilirse sunucu 400 döner), ve "bu
+ * cihaz yeni mi" sorusunun tek cevabı bu defter. Zamanlama önemli: gövde
+ * `markSaved`'dan ÖNCE kurulur, dolayısıyla defter o an hâlâ doğrudur.
+ */
+export function isUnsaved(id: string): boolean {
+  return unsavedIds.has(id);
+}
+
 function subscribe(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);

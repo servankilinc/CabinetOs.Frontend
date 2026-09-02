@@ -9,4 +9,5 @@ export {
 
 // Queries — sunucu ciktisi, saf interface
 export type { ComponentTemplatePaletteDto } from './queries/componentTemplatePaletteDto';
+export type { ComponentTemplatePalettePinDto } from './queries/componentTemplatePalettePinDto';
 export type { TemplateImageDto } from './queries/templateImageDto';

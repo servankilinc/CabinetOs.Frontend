@@ -6,6 +6,8 @@ export {
   type EntityDelta,
   type DiagramSaveRequest,
   type DeviceDraft,
+  type DevicePinDraft,
+  type DeviceIoChannelDraft,
   type ConnectionDraft,
   type AnnotationDraft
 } from './commands/diagramSaveRequest';

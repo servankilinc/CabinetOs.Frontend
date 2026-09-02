@@ -6,6 +6,7 @@ import { diagramKeys } from '@/api/query-keys';
 import { useAppDispatch } from '@/hooks';
 import { ConnectionRejectionMessages, buildConnectionContext, validateConnection } from '@/lib/diagram/connection-rules';
 import { buildSaveRequest } from '@/lib/diagram/build-save-request';
+import { instantiateFromDevicePins, instantiateFromTemplate } from '@/lib/diagram/instantiate-template-pins';
 import { forgetUnsaved, markSaved, markUnsaved, resetUnsaved } from '@/lib/diagram/unsaved-store';
 import {
   createJournal,
@@ -141,22 +142,21 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
   }, []);
 
   const handleSaved = useCallback(
-    (response: DiagramSaveResponse, sent: DiagramJournal) => {
+    (_response: DiagramSaveResponse, sent: DiagramJournal) => {
       // Kimlik yeniden yazma YOK: Id'leri istemci üretti, sunucu onları aynen
       // kullandı. Gövdede giden her kayıt artık kalıcı.
       markSaved(touchedIds(sent));
       syncDirty();
 
-      // Şablondan üretilen pinlerin Id'sini SUNUCU üretir; istemci onları
-      // bilemez. Grafı yeniden çekmek tek yol, aksi halde yeni bırakılan cihaz
-      // pinsiz kalır ve hiçbir kablo bağlanamaz.
+      // Graf TAZELENMEZ. Pin ve kanal Id'lerini de istemci ürettiği için sunucudan
+      // öğrenilecek bir şey kalmadı; eskiden buradaki tek `invalidateQueries`
+      // istisnası tam da onları almak içindi.
       //
-      // "invalidateQueries kullanma" kuralının istisnası burasıdır: gelen veri
-      // aşağıdaki senkron koşulundan geçer, yani kaydedilmemiş bir düzenleme
-      // varken RF state'ini EZMEZ.
-      if (response.instantiatedPinCount > 0) {
-        void queryClient.invalidateQueries({ queryKey: diagramKeys.cabinet(cabinetId) });
-      }
+      // Yine de cache artık bayat: gönderilen düzenlemeler ona yazılmadı.
+      // `refetchType: 'none'` yalnızca BAYAT İŞARETLER, istek atmaz — böylece
+      // uçuştaki bir düzenleme ezilmez ama editöre bir sonraki girişte taze veri
+      // gelir.
+      void queryClient.invalidateQueries({ queryKey: diagramKeys.cabinet(cabinetId), refetchType: 'none' });
     },
     [cabinetId, queryClient, syncDirty]
   );
@@ -306,6 +306,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
   const addDeviceFromTemplate = useCallback(
     (template: ComponentTemplatePaletteDto, position: XYPosition) => {
       const id = newId();
+      const { pins, ioChannels } = instantiateFromTemplate(template);
       const device: DiagramDeviceDto = {
         id,
         name: nextDeviceName(template.name, nodesRef.current),
@@ -330,10 +331,11 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
           backgroundColor: template.backgroundColor,
           backgroundImageUrl: template.backgroundImageUrl
         },
-        // Pinleri SUNUCU üretir: istemci şablonun pin şemasını bilmiyor.
-        // Kaydetme sonrası refetch ile gelirler.
-        pins: [],
-        ioChannels: []
+        // Pinler ve kanallar HEMEN doğar: kimliklerini istemci ürettiği için
+        // kaydetmeyi beklemeye gerek yok. Cihaz canvas'a bırakıldığı anda
+        // kablolanabilir; sunucu aynı pinleri aynı Id'lerle yazacak.
+        pins,
+        ioChannels
       };
 
       setNodes(current => [...current, toDeviceNode(device)]);
@@ -474,6 +476,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
 
       const source = node.data.device;
       const copyId = newId();
+      const { pins, ioChannels } = instantiateFromDevicePins(source.pins);
       const device: DiagramDeviceDto = {
         ...source,
         id: copyId,
@@ -491,10 +494,10 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
         deviceStatusId: null,
         deviceStatusName: null,
         lastSeen: null,
-        // Pinleri SUNUCU üretir. Kaynağın pin kimlikleri kopyaya ait değildir;
-        // taşınsalardı kopyaya çizilen kablo kaynağa bağlanırdı.
-        pins: [],
-        ioChannels: []
+        // Pin ŞEMASI kaynaktan gelir, KİMLİKLERİ tazelenir: taşınsalardı kopyaya
+        // çizilen kablo kaynağa bağlanırdı. Kablolar kopyalanmıyor, yalnızca cihaz.
+        pins,
+        ioChannels
       };
 
       setNodes(current => [...current, toDeviceNode(device)]);

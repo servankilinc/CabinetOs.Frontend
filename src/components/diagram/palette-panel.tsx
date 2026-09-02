@@ -97,7 +97,7 @@ function PaletteCard({ template }: { template: ComponentTemplatePaletteDto }) {
           backgroundColor: safeCssColor(template.backgroundColor),
           color: readableTextColor(template.backgroundColor)
         }}>
-        {template.pinCount}
+        {template.pins.length}
       </div>
       <div className='min-w-0'>
         <p className='truncate text-xs font-medium'>{template.name}</p>

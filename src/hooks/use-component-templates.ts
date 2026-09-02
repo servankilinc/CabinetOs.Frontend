@@ -38,8 +38,8 @@ export function useUploadTemplateImage() {
  *
  * Başarıda palet **invalidate** edilir — `setQueryData` DEĞİL. Canvas ayarlarının
  * aksine sunucu burada yalnızca `{ id }` dönüyor; palet kartının ihtiyaç duyduğu
- * `pinCount`, `deviceTypeId` ve renk sunucudan gelmediği için cache'i yerinde
- * güncellemek uydurma veri yazmak olurdu.
+ * `deviceTypeId`, renk ve pin şeması (pinlerin Id'leri dahil) sunucudan gelmediği
+ * için cache'i yerinde güncellemek uydurma veri yazmak olurdu.
  *
  * Bu invalidation güvenli: palet ayrı bir anahtarda duruyor ve diyagram grafına
  * dokunmuyor, yani kaydedilmemiş bir düzenlemeyi ezme riski yok.

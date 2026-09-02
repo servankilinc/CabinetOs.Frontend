@@ -6,6 +6,7 @@ import {
   type DiagramSaveRequest
 } from '@/models/diagram';
 import type { DiagramJournal } from './journal';
+import { isUnsaved } from './unsaved-store';
 import type { AnnotationNode, DeviceNode, DiagramNode } from './to-rf-nodes';
 import type { DiagramEdge } from './to-rf-edges';
 
@@ -55,6 +56,15 @@ function annotationNode(node: DiagramNode | undefined): AnnotationNode | null {
 
 function toDeviceDraft(node: DeviceNode): DeviceDraft {
   const { device } = node.data;
+
+  // Pin ve kanal kimlikleri SALT-OLUŞTURMA: mevcut bir cihaza gönderilirse sunucu
+  // 400 döner (pinleri zaten var). Id'nin kendisi "bu kayıt sunucuya gitti mi"
+  // sorusunu cevaplayamadığı için defter sorulur.
+  //
+  // Başarısız bir gönderiden sonra kayıt "kaydedilmemiş" kalır (`handleFailed`
+  // `markSaved` çağırmaz), yani bir sonraki deneme pinleri yeniden taşır.
+  const isNew = isUnsaved(node.id);
+
   return {
     id: node.id,
     componentTemplateId: device.componentTemplateId,
@@ -65,7 +75,13 @@ function toDeviceDraft(node: DeviceNode): DeviceDraft {
     zIndex: device.zIndex,
     isLocked: device.isLocked,
     isVisible: device.isVisible,
-    externalCode: device.externalCode
+    externalCode: device.externalCode,
+    // `componentTemplatePinId` tipte null olabilir ama BURADA olamaz: gönderilen
+    // pinler `instantiate-template-pins.ts`'in şablondan ürettikleridir ve o alanı
+    // daima doldurur. Null gelseydi sunucu şema karşılaştırmasında zaten 400'e
+    // düşerdi — sessizce atlamak hatayı gizlemek olurdu.
+    pins: isNew ? device.pins.map(pin => ({ id: pin.id, componentTemplatePinId: pin.componentTemplatePinId! })) : [],
+    ioChannels: isNew ? device.ioChannels.map(channel => ({ id: channel.id, channelNumber: channel.channelNumber })) : []
   };
 }
 

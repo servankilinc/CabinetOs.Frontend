@@ -71,7 +71,7 @@ function TemplateCard({ template }: { template: ComponentTemplatePaletteDto }) {
           // arasindaki zihinsel eslesmeyi kuran sey bu.
           className='grid size-12 shrink-0 place-items-center rounded border text-[10px] font-semibold'
           style={{ backgroundColor: safeCssColor(template.backgroundColor), color: readableTextColor(template.backgroundColor) }}>
-          {template.pinCount}
+          {template.pins.length}
         </div>
         <div className='min-w-0'>
           <p className='truncate text-sm font-medium'>{template.name}</p>
