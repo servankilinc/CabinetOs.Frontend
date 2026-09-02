@@ -30,8 +30,7 @@ import {
   type DiagramAnnotationItemDto,
   type DiagramConnectionDto,
   type DiagramDeviceDto,
-  type DiagramDto,
-  type DiagramSaveResponse
+  type DiagramDto
 } from '@/models/diagram';
 import { setDirty, setSelection } from '@/store/reducers/diagramSlice';
 import { useDiagramSave, type SaveController } from './use-diagram-save';
@@ -142,7 +141,7 @@ export function useDiagramEditor(cabinetId: string, graph: DiagramDto): DiagramE
   }, []);
 
   const handleSaved = useCallback(
-    (_response: DiagramSaveResponse, sent: DiagramJournal) => {
+    (sent: DiagramJournal) => {
       // Kimlik yeniden yazma YOK: Id'leri istemci üretti, sunucu onları aynen
       // kullandı. Gövdede giden her kayıt artık kalıcı.
       markSaved(touchedIds(sent));

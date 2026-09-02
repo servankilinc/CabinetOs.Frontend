@@ -23,4 +23,3 @@ export type { DiagramIoChannelDto } from './queries/diagramIoChannelDto';
 export type { DiagramConnectionDto } from './queries/diagramConnectionDto';
 export type { DiagramAnnotationItemDto } from './queries/diagramAnnotationItemDto';
 export type { DiagramCanvasSettingsDto } from './queries/diagramCanvasSettingsDto';
-export type { DiagramSaveResponse } from './queries/diagramSaveResponse';

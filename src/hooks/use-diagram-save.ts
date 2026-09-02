@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { saveDiagram } from '@/api/diagram';
 import type { DiagramJournal } from '@/lib/diagram/journal';
-import type { DiagramSaveRequest, DiagramSaveResponse } from '@/models/diagram';
+import type { DiagramSaveRequest } from '@/models/diagram';
 
 /**
  * Kaydetme denetleyicisi.
@@ -14,6 +14,15 @@ export type SaveStatus = 'idle' | 'saving' | 'error';
 
 export interface SaveController {
   status: SaveStatus;
+  /**
+   * Son başarılı gönderinin anı — ISO string, **istemcinin kendi saatinden**.
+   *
+   * Sunucudan gelmiyor ve gelmemeli: bu değer yalnızca `save-indicator`'daki
+   * `HH:mm · kaydedildi` rozetini besliyor ve rozet `toLocaleTimeString` ile
+   * kullanıcının yerel saatinde biçimleniyor. Sunucunun UTC'si kullanılsaydı,
+   * iki saat kaydığında rozet kullanıcının duvar saatinden farklı bir değer
+   * gösterirdi — oysa soru "ben bunu saat kaçta kaydettim".
+   */
   lastSavedAt: string | null;
   errorMessage: string | null;
   /**
@@ -39,7 +48,7 @@ export interface UseDiagramSaveParams {
    * `sent` başarıda da verilir: gövdede giden her kayıt artık sunucuda vardır ve
    * "kaydedilmemiş" defterinden düşürülmelidir (bkz. `lib/diagram/unsaved-store.ts`).
    */
-  onSuccess: (response: DiagramSaveResponse, sent: DiagramJournal) => void;
+  onSuccess: (sent: DiagramJournal) => void;
   onFailure: (sent: DiagramJournal, error: unknown) => void;
 }
 
@@ -75,10 +84,12 @@ export function useDiagramSave({ cabinetId, buildRequest, onSuccess, onFailure }
       // denenmez: arka planda kendiliğinden çıkan ikinci bir istek, "yalnızca
       // düğmeye basınca gönderilir" kuralını sessizce deler.
       try {
-        const response = await saveDiagram(cabinetId, request);
+        // Yanıt GÖVDESİZ: sunucudan öğrenilecek bir şey yok, 200'ün kendisi
+        // "hepsi kalıcı" demek.
+        await saveDiagram(cabinetId, request);
         if (unmountedRef.current) return;
-        onSuccessRef.current(response, sent);
-        setLastSavedAt(response.savedAtUtc);
+        onSuccessRef.current(sent);
+        setLastSavedAt(new Date().toISOString());
         setErrorMessage(null);
         setStatus('idle');
       } catch (error) {
